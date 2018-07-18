@@ -1,0 +1,58 @@
+Question: Does webpack automatically inject bundle.js into index.html when serving it from
+the development server? How does it know which html files to include bundle.js with?
+
+Where is the entry point for this app? the express routers don't include any render calls
+to the index.html file
+
+That's bc there are 2 servers running during development, the webpack dev server servers
+the front end code. The webpack dev server is configured in the webpack.configuration file
+
+strategy: upon login, make an api call to login and recieve back a jwt. Store the jwt info
+in localstorage. Add a function that checks if a user is logged in by looking at localstorage,
+called isAuthenticated. Call isAuthenticated in ComponentWillMount in every react component
+with protected access. If it returns false, force a redirect to login.
+
+Problem: api calls aren't protected. Should find a way to send jwt with fetch calls. 
+
+mongoose - can't link documents to each other, gotta save a new copy of a subodcument
+
+create an error handler function to clean up your code
+
+debugging genius - wondered whether Post.find() was returning anything. So tinkered around with
+Post.findOne() to discover that a post with the text 'hi' did indeed exist.
+Futher investigation revealed the author field was null - I hadn't yet modified the author ref
+at the time the post was created. That would explain why the populate query wasnt working!
+So I ran deleteOne() to get rid of that faulty post, and no we're hopefully good.
+
+Super annoying error: making changes to the model doesn't fully affect the database, had to
+manually wipe out the posts collection in mongo shell
+
+
+Groups - post retrieval api url should accept a query string representing the group's id. 
+Return all the 
+posts belonging to the group, posts are now subdocuments of a group. 
+PostList component should then store the groupid in state. Api calls to create posts should
+also include group id. 
+
+Users schema - will need a ref to groups the user is a member of. Forbid access to a group,
+create new api route for group access
+
+React component group - displays list of groups...
+When you click on a link, url becomes /posts/groupId. 
+
+Need a form to create a new group....name field. 
+post group api -> add the group to the user document
+
+Admin privileges: Can add other members...
+
+invitations to a group should be sent as a link through email. But users should also be 
+able to find groups and request to join. Admins will receive the invite request in some 
+messeges box, the invite request should display the user's email. Ideally a company email,
+to thwart impersonation. 
+
+Should not be able to search for other members, or else employers can tell who is part of this.
+All invites through email links, (sign up problem). The only thing employers can see is that the
+group exists. Problem of duplicate/conflicting groups? Just be a member of both
+
+For dev purposes, just display all users to add.
+
