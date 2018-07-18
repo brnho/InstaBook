@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { isLoggedIn } from './services';
+import { isLoggedIn, getToken, currentUser } from './services';
 
 class GroupForm extends Component {
 	state = {
-		name: ''
+		groupName: '',
 		errors: {
-			name: false
+			groupName: false
 		},
 		disabled: false,		
 	};	
@@ -18,73 +18,67 @@ class GroupForm extends Component {
 
 	handleChange = (event) => {
 		this.setState({
-			username: event.target.value
+			groupName: event.target.value
 		});
 	};	
 
-	validateInput = (username, password) => {
+	validateInput = (groupName) => {
 		var errors = {};
-		if(!username) {
-			errors.username = 'Username required';
-		}
-		if(!password) {
-			errors.password = 'Password required';
-		}
+		if(!groupName) {
+			errors.groupName = 'Name required';
+		}		
 		return errors;
 	};	
 
 	handleSubmit = (event) => {
 		event.preventDefault();		
 		//perform validation
-		var errors = this.validateInput(this.state.username, this.state.password);
+		var errors = this.validateInput(this.state.groupName);
 		this.setState({ errors: errors });
 		if(Object.keys(errors).length !== 0) 
 			return;		
 		
 		this.setState({ disabled: true }); //prevent submits while server is processing
 
-		var postData = {
-			username: this.state.username,
-			password: this.state.password
-		};
+		var username = currentUser(); //should this be async???
+		if(username) {
+			var apiData = {
+				groupName: this.state.groupName,
+				username: username
+			};
+		}
 		var that = this; //good workaround?
-
-		fetch('/api/login', {
+		var token = getToken();
+		fetch('/api/group', {
 			method: 'post',
-			body: JSON.stringify(postData),
+			body: JSON.stringify(apiData),
 			headers: {
 				'Accept': 'application/json',
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Authorization': 'Bearer ' + token
 			}
 		}).then(function(response) {
-			if(response.status === 200) {
-				return response.json(); //this async is super important						
-			} else if(response.status === 401){ //unauthorized credentials
-				that.setState({ 
-					errors: { submit: "Invalid login" },
+			if(response.status === 201) {
+				that.setState({
+					groupName: '',
 					disabled: false
 				});				
-				return null;				
-			} else {
+				return;					
+			} 	
+			else {
 				console.log("some error occurred..."); //not sure how this is supposed to be done
 				console.log(response);
 			}
-		}).then(function(token) { //receive a jwt from the login api
-			if(token) {
-				saveToken(token);
-				that.props.onLogin();
-				that.props.history.push('/posts');
-			}
-		}); 
+		});
 	};
 
 	render() {		
 		return(
 			<div>
-				<h2>Login</h2>					
+				<h2>Create Group</h2>					
 				<form onSubmit={this.handleSubmit}>					
-					<input name='name' value={this.state.name} placeholder='Group name' onChange={this.handleChange} />
-					<span style={{ color: 'red' }}>&nbsp;{this.state.errors.name}</span>
+					<input name='groupName' value={this.state.groupName} placeholder='Group name' onChange={this.handleChange} />
+					<span style={{ color: 'red' }}>&nbsp;{this.state.errors.groupName}</span>
 					<br/><br/>					
 					<input type='submit' value='Submit' disabled={this.state.disabled} />
 					<span style={{ color: 'red' }}>&nbsp;{this.state.errors.submit}</span>

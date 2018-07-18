@@ -87,7 +87,8 @@ class UserForm extends Component {
 			return(<Redirect to={{ pathname: '/posts' }}/>); //this only seems to work half the time
 		}
 		return(
-			<div>								
+			<div>	
+				<h2>Sign Up</h2>							
 				<form onSubmit={this.handleSubmit}>					
 					<input name='username' value={this.state.username} placeholder='Username' onChange={this.handleUsernameChange} />
 					<span style={{ color: 'red' }}>&nbsp;{this.state.errors.username}</span>
