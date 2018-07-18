@@ -67,16 +67,17 @@ class App extends Component {
     if(this.state.loggedIn) {
       login = <Link to="/logout">Logout</Link>;
       signup = null;                                    
-      groups = this.state.groups.map((group, i) => {
+      groups = this.state.groups.map((group, i) => {  
+        var url = '/posts/' + group.name + '/' + group._id;      
         return(
-          <li key={i}><a className="dropdown-item" href="{group._id}">{group.name}</a></li>
+          <li key={i}><a className="dropdown-item" href={url}>{group.name}</a></li>
         );
       }); 
 
       groupButton = 
         <div className="dropdown">
           <button className="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            Dropdown
+            View Groups&nbsp;
             <span className="caret"></span>
           </button>
           <ul className="dropdown-menu" aria-labelledby="dropdownMenu1">
@@ -93,13 +94,12 @@ class App extends Component {
       <Router>
         <div>         
           <ul>            
-            <li><Link to="/posts">Posts</Link></li>
             <li><Link to="/createGroup">Create Group</Link></li>
             {signup}            
             <li>{login}</li>
           </ul>      
           {groupButton}
-          <Route exact path="/posts" component={PostList} />
+          <Route exact path="/posts/:groupName/:groupId" component={PostList} />
           <Route exact path='/createGroup' component={GroupForm} />
           <Route exact path="/signup" component={UserForm} />  
           <Route 

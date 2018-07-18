@@ -12,14 +12,14 @@ class PostList extends Component {
 		if(isLoggedIn()) {
 			var username = currentUser();
 			this.setState({ username: username });
+			this.loadPostsFromApi();
 		} else {
 			this.props.history.replace('/login');
 		}
 	}
 
 	componentDidMount() {
-		if(isLoggedIn()) {		
-			this.loadPostsFromApi();
+		if(isLoggedIn()) {			
 			this.forceUpdateInterval = setInterval(this.loadPostsFromApi, 5000); //poll the api every 5 seconds
 		}
 	}
@@ -31,7 +31,7 @@ class PostList extends Component {
 	loadPostsFromApi = () => {
 		var that = this;
 		var token = getToken(); //JWT is set as an HTTP header called Authorization
-		fetch('/api/post', {
+		fetch('/api/post/' + that.props.match.params.groupId, {
 			method: 'get',
 			headers: {
         		'Accept': 'application/json',
@@ -39,7 +39,7 @@ class PostList extends Component {
       		}
 		}).then(that.checkStatus)
 		  .then(res => res.json())
-		  .then(function(posts) {
+		  .then(function(posts) {		  	
 		  	that.setState({ posts: posts });
 		  });
 	};
@@ -80,16 +80,19 @@ class PostList extends Component {
 					key={i}
 					post={post}
 					username={this.state.username} 
-					updateComment={this.updateComment}					
+					updateComment={this.updateComment}
+					groupId={this.props.match.params.groupId}					
 				/>
 			);
 		});
 
 		return(
 			<div>
+				<h2>{this.props.match.params.groupName}</h2>
 				<PostFormComponent
 					updatePost={this.updatePost}
 					username={this.state.username}
+					groupId={this.props.match.params.groupId}
 				/>
 				{posts}
 			</div>
@@ -114,6 +117,7 @@ class PostCommentContainer extends Component {
 						username={this.props.username} //refers to the current user
 						postId={this.props.post._id}
 						updateComment={this.props.updateComment}
+						groupId={this.props.groupId}
 					/>
 				</PostComponent>
 			</div>
@@ -166,7 +170,8 @@ class CommentList extends React.Component {
 				<CommentFormComponent
 					username={this.props.username}
 					updateComment={this.props.updateComment}
-					postId = {this.props.postId}
+					postId={this.props.postId}
+					groupId={this.props.groupId}
 				/>
 			</div>
 		);
@@ -235,7 +240,7 @@ class CommentFormComponent extends Component {
 		
 		var that = this;
 		var token = getToken();		
-		fetch('/api/comment', { //update the server
+		fetch('/api/comment/' + this.props.groupId, { //update the server
 			method: 'post',
 			body: JSON.stringify(apiData),
 			headers: {
@@ -315,7 +320,7 @@ class PostFormComponent extends Component {
 		
 		var that = this;
 		var token = getToken();
-		fetch('/api/post', { //update the server
+		fetch('/api/post/' + that.props.groupId, { //update the server
 			method: 'post',
 			body: JSON.stringify(apiData),
 			headers: {

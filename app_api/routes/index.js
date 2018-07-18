@@ -65,70 +65,84 @@ router.post('/login', function(req, res,) {
 });
 
 //Create a new comment
-router.post('/comment', auth, function(req, res, next) {
+router.post('/comment/:groupId', auth, function(req, res, next) {
 	if(!req.body.comment || !req.body.postId || !req.body.username) {
 		return handleErr(res, 404, {"message": "missing information"});
 	} 
 
-	Post 									//Welcome to callback hell
-		.findById(req.body.postId)
-		.select('comments')
-		.exec(function(err, post) {
+	Group
+		.findById(req.params.groupId)
+		.exec(function(err, group) {
 			if(err) {
 				return handleErr(res, 400, err);
-			} else if(!post) {
-				return handleErr(res, 400, {"message": "post not found"});
-			} else {
-				Comment.create({ //if we found a post, create a comment
-					authorName: req.body.username,
-					text: req.body.comment
-				}, function(err, comment) {
+			}
+			var post = group.posts.id(req.body.postId); //cool method
+			Comment.create({
+				authorName: req.body.username,
+				text: req.body.comment
+			}, function(err, comment) {
+				if(err) {
+					return handleErr(res, 400, err);
+				}
+				post.comments.push(comment);
+				post.save(function(err, post) {
 					if(err) {
 						return handleErr(res, 400, err);
-					} else {
-						post.comments.push(comment); //save the comment to its parent post
-						post.save(function(err, post) {
-							if(err) {
-								return handleErr(res, 400, err);
-							} else {
-								res.status(201).json(comment); //send back the comment
-							}
-						});
 					}
-				});				
-			}		
-		});
+					group.save(function(err, group) {
+						if(err) {
+							return handleErr(res, 400, err);
+						}
+						res.status(201).json(comment);
+					})
+				});
+			});
+		});	
 });
 
 //Get posts
-router.get('/post', auth, function(req, res, next) {	
-	Post.find().exec(function(err, posts) {
-		if(err) {	
-			return handleErr(res, 400, err);
-		} 
-		res.status(200).json(posts);
-	});
+router.get('/post/:groupId', auth, function(req, res, next) {
+	Group 
+		.findById(req.params.groupId)
+		.exec(function(err, group) {
+			if(err) {
+				return handleErr(res, 400, err);
+			}
+			res.status(200).json(group.posts);
+		});
 });
 
 //Create new post
-router.post('/post', auth, function(req, res, next) {
+router.post('/post/:groupId', auth, function(req, res, next) {
 	if(!req.body.post || !req.body.username) {
 		return handleErr(res, 404, {"message": "missing information"});
 	}
 
-	var username = req.body.username;	
-	Post.create({
-		authorName: username,
-		text: req.body.post
-	}, function(err, post) {
-		if(err) {
-			return handleErr(res, 400, err);
-		} else {
-			res.status(201).json(post);
-		}
-	});
+	Group
+		.findById(req.params.groupId)
+		.exec(function(err, group) {
+			if(err) {
+				return handleErr(res, 400, err);
+			}
+			Post.create({
+				authorName: req.body.username,
+				text: req.body.post
+			}, function(err, post) {
+				if(err) {
+					return handleErr(res, 400, err);
+				} 
+				group.posts.push(post);
+				group.save(function(err, group) {
+					if(err) {
+						return handleErr(res, 400, err);
+					}
+					res.status(201).json(post);
+				});
+			});
+		});
 });
 
+//Create a new group
 router.post('/group', auth, function(req, res, next) {
 	if(!req.body.groupName || !req.body.username) {
 		return handleErr(res, 404, {"message": "group name required"});
