@@ -56,3 +56,5 @@ group exists. Problem of duplicate/conflicting groups? Just be a member of both
 
 For dev purposes, just display all users to add.
 
+How to display validation errors sent by the api(mongo)??
+

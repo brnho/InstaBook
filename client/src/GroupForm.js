@@ -57,32 +57,41 @@ class GroupForm extends Component {
 				'Content-Type': 'application/json',
 				'Authorization': 'Bearer ' + token
 			}
-		}).then(function(response) {
-			if(response.status === 201) {
-				that.setState({
-					groupName: '',
-					disabled: false
-				});				
-				return;					
-			} 	
-			else {
-				console.log("some error occurred..."); //not sure how this is supposed to be done
-				console.log(response);
-			}
+		})
+		.then(that.checkStatus)
+		.then(res => res.json())
+		.then(function(group) {
+			that.props.updateGroups(group);
+			that.setState({
+				groupName: '',
+				disabled: false
+			});			
 		});
 	};
 
+	checkStatus = (response) => {
+	  if (response.status >= 200 && response.status < 300) {
+	      return response;
+	    } else {
+	      console.log('help an error'); //change this
+	      //need to throw some error
+	    }
+	};	
+
 	render() {		
 		return(
-			<div>
-				<h2>Create Group</h2>					
-				<form onSubmit={this.handleSubmit}>					
-					<input name='groupName' value={this.state.groupName} placeholder='Group name' onChange={this.handleChange} />
-					<span style={{ color: 'red' }}>&nbsp;{this.state.errors.groupName}</span>
-					<br/><br/>					
-					<input type='submit' value='Submit' disabled={this.state.disabled} />
-					<span style={{ color: 'red' }}>&nbsp;{this.state.errors.submit}</span>
-				</form>
+			<div className="d-flex justify-content-center">
+			<div className="d-flex flex-column mt-3">
+					<h2>Create Group</h2>
+
+					<form onSubmit={this.handleSubmit}>					
+						<input name='groupName' value={this.state.groupName} placeholder='Group name' onChange={this.handleChange} />
+						<span style={{ color: 'red' }}>&nbsp;{this.state.errors.groupName}</span>
+						<br/><br/>					
+						<input type='submit' value='Submit' disabled={this.state.disabled} />
+						<span style={{ color: 'red' }}>&nbsp;{this.state.errors.submit}</span>
+					</form>				
+			</div>
 			</div>		
 		);
 	}

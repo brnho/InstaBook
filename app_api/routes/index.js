@@ -173,17 +173,29 @@ router.post('/group', auth, function(req, res, next) {
 					return handleErr(res, 400, err);
 				}
 			});
-			res.status(201).json();
+			res.status(201).json(group);
 		});
 	});
 });
 
-router.get('/group', auth, function(req, res, next) {
+//get list of groups (to display in dropdown)
+router.get('/groups', auth, function(req, res, next) {
 	Group.find().select('_id name').exec(function(err, groups) { //only return the group id and name
 		if(err) {
 			return handleErr(res, 400, err);
 		}
 		res.status(200).json(groups);
+	});
+});
+
+//get a group
+router.get('/groupMembers/:groupId', auth, function(req, res, next) {
+	//populate the members ref with users, and only return the username field
+	Group.findById(req.params.groupId).populate('members', 'username').exec(function(err, group) {
+		if(err) {
+			return handleErr(res, 400, err);
+		}
+		res.status(200).json(group.members);
 	});
 });
 

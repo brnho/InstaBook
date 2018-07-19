@@ -10,7 +10,6 @@ class UserForm extends Component {
 			password: false
 		},
 		disabled: false,
-		redirect: false
 	};
 
 	/*
@@ -67,7 +66,7 @@ class UserForm extends Component {
 			}
 		}).then(function(response) {
 			if(response.status === 201) {
-				that.setState({ redirect: true }); //note usage of that
+				that.props.history.push('/login');
 				return;				
 			} else if(response.status === 409){ //duplicate username in database
 				that.setState({ 
@@ -82,12 +81,10 @@ class UserForm extends Component {
 		}); 
 	};
 
-	render() {
-		if(this.state.redirect) {
-			return(<Redirect to={{ pathname: '/posts' }}/>); //this only seems to work half the time
-		}
+	render() {		
 		return(
-			<div>	
+			<div className="d-flex justify-content-center">
+			<div className="d-flex flex-column mt-3">	
 				<h2>Sign Up</h2>							
 				<form onSubmit={this.handleSubmit}>					
 					<input name='username' value={this.state.username} placeholder='Username' onChange={this.handleUsernameChange} />
@@ -99,7 +96,7 @@ class UserForm extends Component {
 					<input type='submit' value='Submit' disabled={this.state.disabled} />
 				</form>
 			</div>
-		
+			</div>		
 		);
 	}
 }

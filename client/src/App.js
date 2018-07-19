@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link} from "react-router-dom";
 import './App.css';
+import Home from './home.js';
 import PostList from './Posts';
 import UserForm from './UserForm';
 import LoginForm from './LoginForm';
@@ -30,7 +31,7 @@ class App extends Component {
   loadGroupsFromApi = () => {
     var that = this;
     var token = getToken(); //JWT is set as an HTTP header called Authorization
-    fetch('/api/group', {
+    fetch('/api/groups', {
       method: 'get',
       headers: {
             'Accept': 'application/json',
@@ -41,6 +42,11 @@ class App extends Component {
       .then(function(groups) {      
         that.setState({ groups: groups });
       });
+  };
+
+  updateGroups = (group) => {
+    var groupList = [...this.state.groups, group];
+    this.setState({ groups: groupList });
   };
 
   checkStatus = (response) => {
@@ -63,44 +69,75 @@ class App extends Component {
   };
 
   render() {
-    var login, signup, groups, groupButton;
+    var login, signup, groups, groupButton, viewGroups;
     if(this.state.loggedIn) {
-      login = <Link to="/logout">Logout</Link>;
+      login = <Link to="/logout" className="nav-link disabled">Logout</Link>;
       signup = null;                                    
       groups = this.state.groups.map((group, i) => {  
         var url = '/posts/' + group.name + '/' + group._id;      
         return(
-          <li key={i}><a className="dropdown-item" href={url}>{group.name}</a></li>
+          <a className="dropdown-item" href={url} key={i}>{group.name}</a>
         );
       }); 
-
-      groupButton = 
-        <div className="dropdown">
-          <button className="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-            View Groups&nbsp;
-            <span className="caret"></span>
-          </button>
-          <ul className="dropdown-menu" aria-labelledby="dropdownMenu1">
-            {groups}
-          </ul>
-        </div>
+      viewGroups = <a className="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      View Groups
+                   </a>;     
     } else {
-      login = <Link to="/login">Login</Link>; 
-      signup = <li><Link to="/signup">Sign Up</Link></li>; 
-      groupButton = null;
+      login = <Link to="/login" className="nav-link disabled">Login</Link>; 
+      signup = <Link to="/signup" className="nav-link disabled">Sign Up</Link>; 
+      viewGroups = <a className="nav-link dropdown-toggle disabled" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      View Groups
+                   </a>;
     }
 
     return (
       <Router>
         <div>         
-          <ul>            
-            <li><Link to="/createGroup">Create Group</Link></li>
-            {signup}            
-            <li>{login}</li>
-          </ul>      
-          {groupButton}
+        
+
+<nav className="navbar navbar-expand-lg navbar-ligh" style={{backgroundColor: '#e3f2fd'}}>
+  <a className="navbar-brand" href="/">Website Title</a>
+  <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span className="navbar-toggler-icon"></span>
+  </button>
+
+  <div className="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul className="navbar-nav mr-auto">
+      <li className="nav-item">
+        <a className="nav-link disabled" href="/">Home</a>
+      </li>
+      <li className="nav-item">
+        <Link to="/createGroup" className="nav-link disabled">Create Group</Link>
+      </li>
+      <li className="nav-item dropdown">
+        {viewGroups}
+        <div className="dropdown-menu" aria-labelledby="navbarDropdown">
+          {groups}
+        </div>
+      </li>
+      <li className="nav-item">
+        {login}
+      </li>
+      <li className="nav-item">
+        {signup}
+      </li>      
+    </ul>
+
+
+    <form className="form-inline my-2 my-lg-0">
+      <input className="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
+      <button className="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    </form>
+  </div>
+</nav>
+
+
+          <Route exact path="/" component={Home} />
           <Route exact path="/posts/:groupName/:groupId" component={PostList} />
-          <Route exact path='/createGroup' component={GroupForm} />
+          <Route 
+            exact path='/createGroup'
+            render={(props) => <GroupForm {...props} updateGroups={this.updateGroups} />}
+          />
           <Route exact path="/signup" component={UserForm} />  
           <Route 
             exact path="/login" 

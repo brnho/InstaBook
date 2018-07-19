@@ -5,6 +5,7 @@ import { getToken, isLoggedIn, currentUser, formatDate } from './services';
 class PostList extends Component {
 	state = {
 		posts: [],
+		groupMembers: [],
 		username: ''
 	};
 
@@ -13,6 +14,7 @@ class PostList extends Component {
 			var username = currentUser();
 			this.setState({ username: username });
 			this.loadPostsFromApi();
+			this.loadGroup();
 		} else {
 			this.props.history.replace('/login');
 		}
@@ -42,6 +44,23 @@ class PostList extends Component {
 		  .then(function(posts) {		  	
 		  	that.setState({ posts: posts });
 		  });
+	};
+
+	loadGroup = () => {
+		var that = this;
+		var token = getToken();
+		fetch('/api/groupMembers/' + this.props.match.params.groupId, {
+			method: 'get',
+			headers: {
+				'Accept': 'application/json',
+				'Authorization': 'Bearer ' + token
+			}
+		})
+			.then(that.checkStatus)
+			.then(res => res.json())
+			.then(function(groupMembers) {
+				that.setState({ groupMembers: groupMembers });
+			});
 	};
 
 	checkStatus = (response) => {
@@ -86,16 +105,31 @@ class PostList extends Component {
 			);
 		});
 
+		var members = this.state.groupMembers.map((member, i) => {
+			return(<li className="list-group-item" key={i}>{member.username}</li>);   //
+		});
+
 		return(
-			<div>
-				<h2>{this.props.match.params.groupName}</h2>
-				<PostFormComponent
-					updatePost={this.updatePost}
-					username={this.state.username}
-					groupId={this.props.match.params.groupId}
-				/>
-				{posts}
-			</div>
+			<div className="row">
+				<div className="row flex-column col-sm-9">
+					<div className="d-flex justify-content-center mt-3">					
+						<button type="button" className="btn btn-primary m-2"><h2>&nbsp;{this.props.match.params.groupName}&nbsp;</h2></button>
+					</div>
+					<PostFormComponent
+						updatePost={this.updatePost}
+						username={this.state.username}
+						groupId={this.props.match.params.groupId}
+					/>				
+					{posts}
+				</div>
+
+				<div className="col-sm-3 mt-3">
+					<ul className="list-group">
+						<li className="list-group-item">Members</li>
+						{members}						
+					</ul>
+				</div>
+			</div>			
 		);
 	}
 } 
@@ -131,8 +165,8 @@ class PostComponent extends React.Component {
 	render() {
 		var commentList = React.Children.toArray(this.props.children)[0]; //convert into usable format
 		return(
-			<div className="row">
-				<div className="col-sm-8">
+			<div className="row d-flex justify-content-center m-2">
+				<div className="col-sm-12">
 					<ul className="list-group">
 						<li className="list-group-item">
 							<p>{this.props.authorName}&nbsp;{this.props.timestamp}</p>
@@ -184,8 +218,8 @@ class CommentComponent extends React.Component {
 	render() {
 		var timestamp = formatDate(this.props.timestamp);
 		return(
-			<div className="row">
-				<div className="col-sm-8">
+			<div className="row d-flex justify-content-center m-2">
+				<div className="col-sm-12">
 					<ul className="list-group">
 						<li className="list-group-item">
 							<p>{this.props.authorName}&nbsp;{timestamp}</p>
@@ -261,8 +295,8 @@ class CommentFormComponent extends Component {
 
 	render() {		
 		return(
-			<div className="row">
-				<div className="col-sm-8">
+			<div className="row d-flex justify-content-center m-2">
+				<div className="col-sm-12">
 					<ul className="list-group">
 						<li className="list-group-item">
 							<form onSubmit={this.handleSubmit}>					
@@ -342,8 +376,8 @@ class PostFormComponent extends Component {
 
 	render() {		
 		return(
-			<div className="row">
-				<div className="col-sm-8">
+			<div className="row d-flex justify-content-center m-2">
+				<div className="col-sm-12">
 					<ul className="list-group">
 						<li className="list-group-item">
 							<form onSubmit={this.handleSubmit}>					

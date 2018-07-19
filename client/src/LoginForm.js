@@ -76,14 +76,15 @@ class LoginForm extends Component {
 			if(token) {
 				saveToken(token);
 				that.props.onLogin();
-				that.props.history.push('/posts');
+				that.props.history.push('/');
 			}
 		}); 
 	};
 
 	render() {		
 		return(
-			<div>
+			<div className="d-flex justify-content-center">
+			<div className="d-flex flex-column mt-3">
 				<h2>Login</h2>					
 				<form onSubmit={this.handleSubmit}>					
 					<input name='username' value={this.state.username} placeholder='Username' onChange={this.handleUsernameChange} />
@@ -95,6 +96,7 @@ class LoginForm extends Component {
 					<input type='submit' value='Submit' disabled={this.state.disabled} />
 					<span style={{ color: 'red' }}>&nbsp;{this.state.errors.submit}</span>
 				</form>
+			</div>
 			</div>		
 		);
 	}
