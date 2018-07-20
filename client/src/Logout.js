@@ -1,5 +1,4 @@
-import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Link} from "react-router-dom";
+import { Component } from 'react';
 import { logout } from './services.js';
 
 class Logout extends Component {

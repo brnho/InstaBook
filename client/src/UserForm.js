@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Route, Redirect } from "react-router-dom";
 
 class UserForm extends Component {
 	state = {

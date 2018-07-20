@@ -50,14 +50,16 @@ userSchema.methods.generateJwt = function() {
 var commentSchema = new mongoose.Schema({
 	authorName: {type: String, require: true},
 	timestamp: {type: Date, "default": Date.now()},
-	text: {type: String, required: true}
+	text: {type: String, required: true},
+	avatarUrl: {type: String}
 });
 
 var postSchema = new mongoose.Schema({
 	authorName: {type: String, require: true},
 	timestamp: {type: Date, "default": Date.now()},
 	text: {type: String, required: true},
-	comments: [commentSchema]
+	comments: [commentSchema],
+	avatarUrl: {type: String}
 });
 
 var groupSchema = new mongoose.Schema({

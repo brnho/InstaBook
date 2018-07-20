@@ -7,11 +7,17 @@ var Post = mongoose.model('Post');
 var Group = mongoose.model('Group');
 var passport = require('passport');
 var jwt = require('express-jwt');
+var md5 = require('js-md5');
 
 var auth = jwt({
 	secret: process.env.JWT_SECRET,
 	userProperty: 'payload' //define property on req to be payload
 });
+
+var avatar = (username, size) => {	
+	var hash = md5(username);
+	return 'https://www.gravatar.com/avatar/' + hash + '?d=retro&s=' + size;
+};
 
 var handleErr = function(res, statusCode, err) {
 	console.log(err);
@@ -77,9 +83,11 @@ router.post('/comment/:groupId', auth, function(req, res, next) {
 				return handleErr(res, 400, err);
 			}
 			var post = group.posts.id(req.body.postId); //cool method
+			var url = avatar(req.body.username, 30);
 			Comment.create({
 				authorName: req.body.username,
-				text: req.body.comment
+				text: req.body.comment,
+				avatarUrl: url
 			}, function(err, comment) {
 				if(err) {
 					return handleErr(res, 400, err);
@@ -124,14 +132,16 @@ router.post('/post/:groupId', auth, function(req, res, next) {
 			if(err) {
 				return handleErr(res, 400, err);
 			}
+			var url = avatar(req.body.username, 36);
 			Post.create({
 				authorName: req.body.username,
-				text: req.body.post
+				text: req.body.post,
+				avatarUrl: url
 			}, function(err, post) {
 				if(err) {
 					return handleErr(res, 400, err);
 				} 
-				group.posts.push(post);
+				group.posts.unshift(post); //newest to oldest
 				group.save(function(err, group) {
 					if(err) {
 						return handleErr(res, 400, err);
@@ -196,6 +206,32 @@ router.get('/groupMembers/:groupId', auth, function(req, res, next) {
 			return handleErr(res, 400, err);
 		}
 		res.status(200).json(group.members);
+	});
+});
+
+//delete a post
+router.delete('/post/:postId/:groupId', auth, function(req, res, next) {
+	Group.findById(req.params.groupId, function(err, group) {
+		if(err) {
+			return handleErr(res, 400, err);
+		}
+		if(!group) {
+			return handleErr(res, 404, err);
+		}
+		if(group.posts.id(req.params.postId)) {	//protect against that weird 404 error...?? Will need further validation safeguards	
+			group.posts.id(req.params.postId).remove(); //do i also need to delete the post itself??
+			group.save(function(err, group) {
+				if(err) {
+					return handleErr(res, 400, err);
+				}	
+				Post.deleteOne({ _id: req.params.postId }, function(err) { //seems this is neccesary, will also need to do this for comments
+					if(err) {
+						return handleErr(res, 400, err);
+					}
+					res.status(202).json();
+				});		
+			})
+		}		
 	});
 });
 

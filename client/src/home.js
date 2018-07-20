@@ -18,7 +18,7 @@ class Home extends Component {
 
 	render() {
 		return(
-			<div className="d-flex justify-content-center m-3">
+			<div className="d-flex justify-content-center" id="welcome">
 				<h1>Hello, {this.state.username}!</h1>
 			</div>
 		);

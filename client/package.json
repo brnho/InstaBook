@@ -5,6 +5,10 @@
   "devDependencies": {
     "react-scripts": "1.1.4"
   },
+  "engines": {
+    "node": "~8.11.1",
+    "npm": "~5.6.0"
+  },
   "dependencies": {
     "react": "^16.4.1",
     "react-dom": "^16.4.1",

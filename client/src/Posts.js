@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Redirect } from "react-router-dom";
 import { getToken, isLoggedIn, currentUser, formatDate } from './services';
 
 class PostList extends Component {
@@ -87,9 +86,25 @@ class PostList extends Component {
 
 	updatePost = (post) => {
 		console.log(post.authorName);
-		var postList = [...this.state.posts, post];		
+		var postList = [post, ...this.state.posts];		
 		this.setState({ posts: postList });
 	};
+
+	deletePost = (postId) => {
+		var posts = this.state.posts.filter(post => post._id !== postId);
+		this.setState({ posts: posts });
+
+		var token = getToken();
+		var that = this;
+
+		fetch('/api/post/' + postId + '/' + that.props.match.params.groupId, {
+			method: 'delete',
+			headers: {
+				'Accept': 'application/json',
+				'Authorization': 'Bearer ' + token
+			}
+		}).then(that.checkStatus);
+	}
 
 	render() {
 		//note that username refers to the user currently logged in, not necessarily the author of the post
@@ -100,21 +115,19 @@ class PostList extends Component {
 					post={post}
 					username={this.state.username} 
 					updateComment={this.updateComment}
-					groupId={this.props.match.params.groupId}					
+					groupId={this.props.match.params.groupId}
+					deletePost={this.deletePost}					
 				/>
 			);
 		});
 
 		var members = this.state.groupMembers.map((member, i) => {
-			return(<li className="list-group-item" key={i}>{member.username}</li>);   //
+			return(<a className="dropdown-item" key={i}>{member.username}</a>);   //
 		});
 
 		return(
-			<div className="row">
-				<div className="row flex-column col-sm-9">
-					<div className="d-flex justify-content-center mt-3">					
-						<button type="button" className="btn btn-primary m-2"><h2>&nbsp;{this.props.match.params.groupName}&nbsp;</h2></button>
-					</div>
+			<div className="row no-gutters">
+				<div className="flex-column col-sm-9">					
 					<PostFormComponent
 						updatePost={this.updatePost}
 						username={this.state.username}
@@ -123,11 +136,16 @@ class PostList extends Component {
 					{posts}
 				</div>
 
-				<div className="col-sm-3 mt-3">
-					<ul className="list-group">
-						<li className="list-group-item">Members</li>
-						{members}						
-					</ul>
+				<div className="flex-column col-sm-3">
+					<div className="box" id="groupName">					
+						<h2>{this.props.match.params.groupName}</h2>
+						<a id="members" className="nav-link dropdown-toggle" href="#" id="navbarDropdownBody" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                   			Members
+               			</a>
+				        <div className="dropdown-menu" aria-labelledby="navbarDropdown">
+				          {members}
+				        </div>		
+					</div>								
 				</div>
 			</div>			
 		);
@@ -145,6 +163,9 @@ class PostCommentContainer extends Component {
 					authorName={this.props.post.authorName}
 					text={this.props.post.text}
 					timestamp={timestamp}
+					url={this.props.post.avatarUrl}
+					postId={this.props.post._id}
+					deletePost={this.props.deletePost}
 				>
 					<CommentList						
 						comments={this.props.post.comments}
@@ -162,18 +183,35 @@ class PostCommentContainer extends Component {
 //
 
 class PostComponent extends React.Component {
+
+	deletePost = () => {		
+		this.props.deletePost(this.props.postId);
+	};
+
 	render() {
 		var commentList = React.Children.toArray(this.props.children)[0]; //convert into usable format
 		return(
-			<div className="row d-flex justify-content-center m-2">
+			<div className="row d-flex justify-content-center">
 				<div className="col-sm-12">
-					<ul className="list-group">
-						<li className="list-group-item">
-							<p>{this.props.authorName}&nbsp;{this.props.timestamp}</p>
-							<p>{this.props.text}</p>
-							{commentList}
-						</li>					
-					</ul>
+					<div className="box" id="boxPost">
+						<table>
+							<tbody>
+							<tr>
+								<td className='tableCell1'><img src={this.props.url} /></td>
+								<td className='tableCell2' id="postInfo">
+									<div id="author">{this.props.authorName}</div>									
+									{this.props.timestamp}
+								</td>
+								<td id="delete">									
+									<a id="delete" href="javascript:void(0)" onClick={this.deletePost}>Delete Post</a>
+								</td>								
+								
+							</tr>							
+							</tbody>
+						</table>											
+						<p id="postText">{this.props.text}</p>
+						{commentList}
+					</div>					
 				</div>
 			</div>			
 		);
@@ -191,6 +229,7 @@ class CommentList extends React.Component {
 						authorName={comment.authorName}
 						text={comment.text}
 						timestamp={comment.timestamp}
+						url={comment.avatarUrl}
 					/>
 				);
 			});
@@ -218,14 +257,22 @@ class CommentComponent extends React.Component {
 	render() {
 		var timestamp = formatDate(this.props.timestamp);
 		return(
-			<div className="row d-flex justify-content-center m-2">
+			<div className="row d-flex justify-content-center mr-2 ml-2">
 				<div className="col-sm-12">
-					<ul className="list-group">
-						<li className="list-group-item">
-							<p>{this.props.authorName}&nbsp;{timestamp}</p>
-							<p>{this.props.text}</p>
-						</li>
-					</ul>
+					<div className="box" id="commentBox">
+						<table>
+							<tbody>
+							<tr>
+								<td><img id='commentImg' src={this.props.url} /></td>
+								<td id="commentInfo">
+									<div id="author">{this.props.authorName}</div>
+									{timestamp}
+								</td>
+							</tr>
+							</tbody>
+						</table>					
+						<p id="commentText">{this.props.text}</p>
+					</div>					
 				</div>
 			</div>
 		);
@@ -293,20 +340,22 @@ class CommentFormComponent extends Component {
 		  }); 
 	};
 
-	render() {		
+	render() {	
+		var errors;	
+		if(this.state.errors.comment) {
+			errors = <span id="error" style={{ color: 'red' }}>&nbsp;{this.state.errors.comment}</span>;
+		} else {
+			errors = null;
+		}
 		return(
-			<div className="row d-flex justify-content-center m-2">
+			<div className="row d-flex justify-content-center mr-2 ml-2">
 				<div className="col-sm-12">
-					<ul className="list-group">
-						<li className="list-group-item">
-							<form onSubmit={this.handleSubmit}>					
-								<input name='comment' value={this.state.comment} placeholder='Write a comment' onChange={this.handleChange} />
-								<span style={{ color: 'red' }}>&nbsp;{this.state.errors.comment}</span>
-								<br/><br/>								
-								<input type='submit' value='Submit' disabled={this.state.disabled} />
-							</form>							
-						</li>
-					</ul>
+					
+						<form onSubmit={this.handleSubmit}>					
+							<input name='comment' className='form-control' disabled={this.state.disabled} value={this.state.comment} placeholder='Write a comment' onChange={this.handleChange}/>
+							{errors}														
+						</form>							
+					
 				</div>
 			</div>	
 		);
@@ -374,20 +423,23 @@ class PostFormComponent extends Component {
 		  }); 
 	};
 
-	render() {		
+	render() {	
+		var errors;	
+		if(this.state.errors.post) {
+			errors = <span id="error" style={{ color: 'red' }}>&nbsp;{this.state.errors.post}</span>;
+		} else {
+			errors = null;
+		}
+
 		return(
-			<div className="row d-flex justify-content-center m-2">
+			<div className="row d-flex justify-content-center">
 				<div className="col-sm-12">
-					<ul className="list-group">
-						<li className="list-group-item">
-							<form onSubmit={this.handleSubmit}>					
-								<input name='post' value={this.state.post} placeholder='Write a post' onChange={this.handleChange} />
-								<span style={{ color: 'red' }}>&nbsp;{this.state.errors.post}</span>
-								<br/><br/>								
-								<input type='submit' value='Submit' disabled={this.state.disabled} />
-							</form>							
-						</li>
-					</ul>
+					<div className="box" id="boxPostForm">
+						<form onSubmit={this.handleSubmit}>				
+							<textarea className='form-control' value={this.state.post} placeholder='Write a post' onChange={this.handleChange} />								
+							<button className="btn btn-primary" type="submit" disabled={this.state.disabled}>Create Post</button>&nbsp;{errors}							
+						</form>							
+					</div>
 				</div>
 			</div>	
 		);

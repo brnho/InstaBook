@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link} from "react-router-dom";
-import './App.css';
+
 import Home from './home.js';
 import PostList from './Posts';
 import UserForm from './UserForm';
@@ -69,9 +69,9 @@ class App extends Component {
   };
 
   render() {
-    var login, signup, groups, groupButton, viewGroups;
+    var login, signup, groups, viewGroups;
     if(this.state.loggedIn) {
-      login = <Link to="/logout" className="nav-link disabled">Logout</Link>;
+      login = <Link to="/logout" id="navText" className="nav-link">Logout</Link>;
       signup = null;                                    
       groups = this.state.groups.map((group, i) => {  
         var url = '/posts/' + group.name + '/' + group._id;      
@@ -79,12 +79,12 @@ class App extends Component {
           <a className="dropdown-item" href={url} key={i}>{group.name}</a>
         );
       }); 
-      viewGroups = <a className="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      viewGroups = <a id="navText" className="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       View Groups
                    </a>;     
     } else {
-      login = <Link to="/login" className="nav-link disabled">Login</Link>; 
-      signup = <Link to="/signup" className="nav-link disabled">Sign Up</Link>; 
+      login = <Link to="/login" id="navText" className="nav-link disabled">Login</Link>; 
+      signup = <Link to="/signup" id="navText" className="nav-link disabled">Sign Up</Link>; 
       viewGroups = <a className="nav-link dropdown-toggle disabled" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       View Groups
                    </a>;
@@ -95,8 +95,8 @@ class App extends Component {
         <div>         
         
 
-<nav className="navbar navbar-expand-lg navbar-ligh" style={{backgroundColor: '#e3f2fd'}}>
-  <a className="navbar-brand" href="/">Website Title</a>
+<nav className="navbar fixed-top navbar-expand-lg">
+  <a id="navText" className="navbar-brand" href="/"><strong>Facebook</strong></a>
   <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span className="navbar-toggler-icon"></span>
   </button>
@@ -104,10 +104,10 @@ class App extends Component {
   <div className="collapse navbar-collapse" id="navbarSupportedContent">
     <ul className="navbar-nav mr-auto">
       <li className="nav-item">
-        <a className="nav-link disabled" href="/">Home</a>
+        <a id="navText" className="nav-link" href="/">Home</a>
       </li>
       <li className="nav-item">
-        <Link to="/createGroup" className="nav-link disabled">Create Group</Link>
+        <Link to="/createGroup" className="nav-link" id="navText">Create Group</Link>
       </li>
       <li className="nav-item dropdown">
         {viewGroups}
@@ -126,12 +126,12 @@ class App extends Component {
 
     <form className="form-inline my-2 my-lg-0">
       <input className="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
-      <button className="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      <button id="search" className="btn btn-success my-2 my-sm-0" type="submit">Search</button>
     </form>
   </div>
 </nav>
 
-
+          <div className="mt-5">
           <Route exact path="/" component={Home} />
           <Route exact path="/posts/:groupName/:groupId" component={PostList} />
           <Route 
@@ -146,7 +146,10 @@ class App extends Component {
           <Route 
             exact path="/logout"
             render={(props) => <Logout {...props} onLogout={this.onLogout} />} 
-          />        
+          /> 
+          </div>
+
+
         </div>        
       </Router>
     );

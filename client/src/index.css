@@ -2,4 +2,147 @@ body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  background-color: #dee4ea;
 }
+
+.box {
+	box-shadow: 0px 1px 3px 0.5px #9ea39f; 
+	padding: 20px;
+	background-color: white;
+	border-radius: 10px;
+	margin: 0px 0px 20px 0px;	
+}
+
+#boxPostForm{
+	margin-left: 20px;
+
+	margin-top: 30px;
+
+}
+
+#boxPost {
+	margin-left: 20px;	
+}
+
+#error {
+	font-size: 0.75em;
+}
+
+
+#groupButton {
+	box-shadow: 0px 1px 2px 1px #9ea39f;
+	padding-right: 40px;
+	padding-left: 40px;
+}
+
+
+
+.navbar {
+	box-shadow: 0px 1px 1px 0px #9ea39f;	
+	background-color: #3f80ea;
+}
+
+.btn {
+	background-color: #3f80ea;
+}
+
+img {
+	border-radius: 50%;
+	height: 80%;
+	width: 80%;
+}
+
+#postText {
+	text-indent: 2px;	
+}
+
+#postInfo {
+	font-size: 0.8em;
+	color: #AAA5A5;
+}
+
+#commentImg {
+	
+	height: 80%;
+	width: 80%;
+}
+
+#commentInfo {
+	font-size: 0.70em;
+	color: #AAA5A5;
+}
+
+
+#commentText {
+	margin-bottom: 0px;	
+	font-size: 0.80em;
+	text-indent: 2px;
+}
+
+#commentBox {
+	padding-bottom: 5px;
+	padding-top: 5px; 
+
+}
+
+#welcome {
+	margin-top: 60px;
+}
+
+textArea{
+	width: 100%;
+	height: 100%;
+	margin-bottom: 10px
+}
+
+#author {
+	color: #3f80ea;
+	font-weight: 710;
+}
+
+#groupName {
+	text-align: center;
+	margin-top: 30px;
+	margin-right: 20px;
+	margin-left: 20px;
+		
+}
+
+#navText, #navbarDropdown {
+	color: white;
+}
+
+#navbarDropdownBody {
+	color: #3f80ea;
+	text-align: center;
+}
+
+#members {
+	font-size: 90%;
+}
+
+#delete {
+	vertical-align: top;
+	font-size: 80%;
+	text-align: right;
+	width: 90%;	
+}
+
+table {
+	table-layout: fixed;
+}
+
+.tableCell1 {
+	min-width: 36px;
+}
+
+.tableCell2 {
+	min-width: 90px;
+}
+
+
+
+
+
+
+
