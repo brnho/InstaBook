@@ -7,6 +7,7 @@ import UserForm from './UserForm';
 import LoginForm from './LoginForm';
 import Logout from './Logout.js';
 import GroupForm from './GroupForm.js';
+import GroupInvite from './GroupInvite.js';
 import { isLoggedIn, getToken } from './services';
 
 class App extends Component {
@@ -147,6 +148,7 @@ class App extends Component {
             exact path="/logout"
             render={(props) => <Logout {...props} onLogout={this.onLogout} />} 
           /> 
+          <Route exact path="/groupInvite/:token" component={GroupInvite} />
           </div>
 
 

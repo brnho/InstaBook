@@ -7,6 +7,7 @@ var Post = mongoose.model('Post');
 var Group = mongoose.model('Group');
 var passport = require('passport');
 var jwt = require('express-jwt');
+var jsonwebtoken = require('jsonwebtoken');
 var md5 = require('js-md5');
 
 var auth = jwt({
@@ -79,32 +80,23 @@ router.post('/comment/:groupId', auth, function(req, res, next) {
 	Group
 		.findById(req.params.groupId)
 		.exec(function(err, group) {
-			if(err) {
-				return handleErr(res, 400, err);
-			}
-			var post = group.posts.id(req.body.postId); //cool method
+			if(err) return handleErr(res, 400, err);
+			
+			var post = group.posts.id(req.body.postId); //cool method			
 			var url = avatar(req.body.username, 30);
-			Comment.create({
+			post.comments.push({
 				authorName: req.body.username,
 				text: req.body.comment,
 				avatarUrl: url
-			}, function(err, comment) {
-				if(err) {
-					return handleErr(res, 400, err);
-				}
-				post.comments.push(comment);
-				post.save(function(err, post) {
-					if(err) {
-						return handleErr(res, 400, err);
-					}
-					group.save(function(err, group) {
-						if(err) {
-							return handleErr(res, 400, err);
-						}
-						res.status(201).json(comment);
-					})
-				});
 			});
+
+			post.save(function(err) {
+				if(err) return handleErr(res, 400, err);
+				group.save(function(err) {
+					if(err) return handleErr(res, 400, err);
+					res.status(201).json(post.comments[post.comments.length-1]); //possible source of error, like below?
+				});
+			});			
 		});	
 });
 
@@ -133,22 +125,17 @@ router.post('/post/:groupId', auth, function(req, res, next) {
 				return handleErr(res, 400, err);
 			}
 			var url = avatar(req.body.username, 36);
-			Post.create({
+
+			group.posts.unshift({
 				authorName: req.body.username,
 				text: req.body.post,
 				avatarUrl: url
-			}, function(err, post) {
-				if(err) {
-					return handleErr(res, 400, err);
-				} 
-				group.posts.unshift(post); //newest to oldest
-				group.save(function(err, group) {
-					if(err) {
-						return handleErr(res, 400, err);
-					}
-					res.status(201).json(post);
-				});
 			});
+
+			group.save(function(err, group) {
+				if(err) return handleErr(res, 400, err);
+				res.status(201).json(group.posts[0]); //what if another thread saved another post earlier, so the wrong post is returned??
+			});			
 		});
 });
 
@@ -212,26 +199,103 @@ router.get('/groupMembers/:groupId', auth, function(req, res, next) {
 //delete a post
 router.delete('/post/:postId/:groupId', auth, function(req, res, next) {
 	Group.findById(req.params.groupId, function(err, group) {
-		if(err) {
-			return handleErr(res, 400, err);
-		}
-		if(!group) {
-			return handleErr(res, 404, err);
-		}
+		if(err) return handleErr(res, 400, err);
+		if(!group) return handleErr(res, 404, err);
+	
 		if(group.posts.id(req.params.postId)) {	//protect against that weird 404 error...?? Will need further validation safeguards	
-			group.posts.id(req.params.postId).remove(); //do i also need to delete the post itself??
+			group.posts.id(req.params.postId).remove(); 
 			group.save(function(err, group) {
-				if(err) {
-					return handleErr(res, 400, err);
-				}	
-				Post.deleteOne({ _id: req.params.postId }, function(err) { //seems this is neccesary, will also need to do this for comments
-					if(err) {
-						return handleErr(res, 400, err);
-					}
-					res.status(202).json();
-				});		
+				if(err) return handleErr(res, 400, err);
+				res.status(202).json(); 
 			})
+		} else {
+			return handleErr(res, 404, {"message": "resource not found"});
 		}		
+	});
+});
+
+//delete a comment
+router.delete('/comment/:commentId/:postId/:groupId', auth, function(req, res, next) {
+	Group
+		.findById(req.params.groupId)
+		.exec(function(err, group) {
+			if(err)	return handleErr(res, 400, err);			
+			
+			if(group.posts.id(req.params.postId)) { //can we find the post
+				var post = group.posts.id(req.params.postId); //obtain the post
+
+				if(post.comments.id(req.params.commentId)){ //can we find the comment
+					post.comments.id(req.params.commentId).remove(); //remove the comment
+					post.save(function(err) {
+						if(err) return handleErr(res, 400, err);
+						group.save(function(err) {
+							if(err) return handleErr(res, 400, err);
+							res.status(202).json(); //success
+						});
+					});					
+				} else {
+					return handleErr(res, 404, {"message": "resource not found"});
+				}
+			} else {
+				return handleErr(res, 404, {"message": "resource not found"});
+			}	
+		});
+});
+
+//add user to a group and vice versa
+router.post('/joinGroup', auth, function(req, res, next) {
+	if(!req.body.groupId || !req.body.userId) return handleErr(res, 404, {"message": "missing info"});
+
+	Group.findById(req.body.groupId, function(err, group) {
+		if(err) return handleErr(res, 404, err); //if the group couldnt be found
+		
+		User.findById(req.body.userId, function(err, user) {
+			if(err) return handleErr(res, 400, err);
+
+
+			var found = group.members.find((member) => member.equals(user._id)); //.equals method for comparing object IDs!!
+			if(found) { //the user is already part of the group!
+				console.log('hihi');
+				res.status(200).json();
+				return;
+			}
+
+			group.members.push(user._id); //add the user to the group
+			group.save(function(err) {
+				if(err) return handleErr(res, 400, err);
+				user.groups.push(group._id); //add the group to the user
+				user.save(function(err) {
+					if(err) return handleErr(res, 400, err);
+					res.status(200).json(); //success
+				});
+			});				
+		});
+	});
+});
+
+//check whether a user has access to a group
+router.get('/groupAccess/:userId/:groupId', auth, function(req, res, next) {
+	Group.findById(req.params.groupId, function(err, group) {
+		if(err) return handleErr(res, 403, err); //403 because we still want to prevent user from accessing
+		var user = group.members.id(req.params.userId);
+		if(user) {
+			res.status(200).json(); //user has access
+		} else {
+			res.status(403).json(); //user doesn't have access
+		}
+	});
+});
+
+//verify jwt and return decoded group name and group id
+router.get('/verifyToken/:token', auth, function(req, res, next) {
+	jsonwebtoken.verify(req.params.token, process.env.JWT_SECRET, function(err, decoded) {
+		if(err) {
+			return handleErr(res, 403, err); //invalid jwt
+		}
+		res.status(200).json({
+			groupId: decoded.groupId,
+			groupName: decoded.groupName
+		});
 	});
 });
 

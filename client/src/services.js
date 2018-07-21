@@ -28,6 +28,14 @@ var currentUser = function() {
 	}
 };
 
+var userId = function() {
+	if(isLoggedIn()) {
+		var token = getToken();
+		var payload = JSON.parse(window.atob(token.split('.')[1]));
+		return payload._id;
+	}
+}
+
 //mongoose stores dates as ISO date objects, but returns them as strings
 var formatDate = function(dateString) {
 	var date = new Date(dateString);
@@ -42,4 +50,4 @@ var formatDate = function(dateString) {
 
 
 
-export { saveToken, getToken, isLoggedIn, currentUser, logout, formatDate };
+export { saveToken, getToken, isLoggedIn, currentUser, logout, formatDate, userId };

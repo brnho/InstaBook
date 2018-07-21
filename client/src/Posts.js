@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { getToken, isLoggedIn, currentUser, formatDate } from './services';
+import InviteForm from './InviteForm';
 
 class PostList extends Component {
 	state = {
@@ -71,7 +72,7 @@ class PostList extends Component {
 	    }
 	};	
 
-	updateComment = (comment, postId) => {
+	newComment = (comment, postId) => {
 		var posts = this.state.posts.map((post) => {
 			if(post._id === postId) {
 				post.comments.push(comment);
@@ -84,7 +85,7 @@ class PostList extends Component {
 		this.setState({ posts: posts }); //double insurance, and create faster UI response
 	};
 
-	updatePost = (post) => {
+	newPost = (post) => {
 		console.log(post.authorName);
 		var postList = [post, ...this.state.posts];		
 		this.setState({ posts: postList });
@@ -92,12 +93,39 @@ class PostList extends Component {
 
 	deletePost = (postId) => {
 		var posts = this.state.posts.filter(post => post._id !== postId);
-		this.setState({ posts: posts });
+		if(posts) { //if for some weird reason the post doesn't exist
+			this.setState({ posts: posts });
+		}
 
 		var token = getToken();
 		var that = this;
-
 		fetch('/api/post/' + postId + '/' + that.props.match.params.groupId, {
+			method: 'delete',
+			headers: {
+				'Accept': 'application/json',
+				'Authorization': 'Bearer ' + token
+			}
+		}).then(that.checkStatus);
+	}
+
+	deleteComment = (postId, commentId) => {
+		var modifiedPost = this.state.posts.find((post) => post._id === postId);
+		if(modifiedPost) { //if for some weird reason the post doesn't exist
+			var comments = modifiedPost.comments.filter(comment => comment._id !== commentId);
+			modifiedPost.comments = comments; 
+			var posts = this.state.posts.map((post) => {
+				if(post._id === postId) {
+					return modifiedPost;
+				} else {
+					return post;
+				}
+			});
+			this.setState({ posts: posts });
+		}
+
+		var token = getToken();
+		var that = this;
+		fetch('/api/comment/' + commentId + '/' + postId + '/' + that.props.match.params.groupId, {
 			method: 'delete',
 			headers: {
 				'Accept': 'application/json',
@@ -114,9 +142,10 @@ class PostList extends Component {
 					key={i}
 					post={post}
 					username={this.state.username} 
-					updateComment={this.updateComment}
+					newComment={this.newComment}
 					groupId={this.props.match.params.groupId}
-					deletePost={this.deletePost}					
+					deletePost={this.deletePost}
+					deleteComment={this.deleteComment}					
 				/>
 			);
 		});
@@ -129,7 +158,7 @@ class PostList extends Component {
 			<div className="row no-gutters">
 				<div className="flex-column col-sm-9">					
 					<PostFormComponent
-						updatePost={this.updatePost}
+						newPost={this.newPost}
 						username={this.state.username}
 						groupId={this.props.match.params.groupId}
 					/>				
@@ -144,7 +173,11 @@ class PostList extends Component {
                			</a>
 				        <div className="dropdown-menu" aria-labelledby="navbarDropdown">
 				          {members}
-				        </div>		
+				        </div>	
+				        <InviteForm
+				        	groupId={this.props.match.params.groupId}
+				        	groupName={this.props.match.params.groupName}
+				        />	
 					</div>								
 				</div>
 			</div>			
@@ -161,6 +194,7 @@ class PostCommentContainer extends Component {
 			<div>
 				<PostComponent
 					authorName={this.props.post.authorName}
+					username={this.props.username} //refers to the current user
 					text={this.props.post.text}
 					timestamp={timestamp}
 					url={this.props.post.avatarUrl}
@@ -171,8 +205,9 @@ class PostCommentContainer extends Component {
 						comments={this.props.post.comments}
 						username={this.props.username} //refers to the current user
 						postId={this.props.post._id}
-						updateComment={this.props.updateComment}
+						newComment={this.props.newComment}
 						groupId={this.props.groupId}
+						deleteComment={this.props.deleteComment}
 					/>
 				</PostComponent>
 			</div>
@@ -189,6 +224,12 @@ class PostComponent extends React.Component {
 	};
 
 	render() {
+		if(this.props.authorName === this.props.username) { //if this is the current user's post
+			var options = <td id="delete">									
+								<a id="delete" href="javascript:void(0)" onClick={this.deletePost}>Delete Post</a>
+							</td>;
+		}
+
 		var commentList = React.Children.toArray(this.props.children)[0]; //convert into usable format
 		return(
 			<div className="row d-flex justify-content-center">
@@ -202,10 +243,7 @@ class PostComponent extends React.Component {
 									<div id="author">{this.props.authorName}</div>									
 									{this.props.timestamp}
 								</td>
-								<td id="delete">									
-									<a id="delete" href="javascript:void(0)" onClick={this.deletePost}>Delete Post</a>
-								</td>								
-								
+								{options}								
 							</tr>							
 							</tbody>
 						</table>											
@@ -227,9 +265,13 @@ class CommentList extends React.Component {
 					<CommentComponent
 						key={i}
 						authorName={comment.authorName}
+						username={this.props.username}
 						text={comment.text}
 						timestamp={comment.timestamp}
 						url={comment.avatarUrl}
+						postId={this.props.postId}
+						commentId={comment._id}
+						deleteComment={this.props.deleteComment}
 					/>
 				);
 			});
@@ -242,7 +284,7 @@ class CommentList extends React.Component {
 				{comments}
 				<CommentFormComponent
 					username={this.props.username}
-					updateComment={this.props.updateComment}
+					newComment={this.props.newComment}
 					postId={this.props.postId}
 					groupId={this.props.groupId}
 				/>
@@ -254,7 +296,18 @@ class CommentList extends React.Component {
 //
 
 class CommentComponent extends React.Component {
+
+	deleteComment = () => {
+		this.props.deleteComment(this.props.postId, this.props.commentId);
+	};
+
 	render() {
+		if(this.props.authorName === this.props.username) {
+			var options = <td id="delete">									
+								<a id="delete" href="javascript:void(0)" onClick={this.deleteComment}>Delete Comment</a>
+							</td>;
+		}
+
 		var timestamp = formatDate(this.props.timestamp);
 		return(
 			<div className="row d-flex justify-content-center mr-2 ml-2">
@@ -263,11 +316,12 @@ class CommentComponent extends React.Component {
 						<table>
 							<tbody>
 							<tr>
-								<td><img id='commentImg' src={this.props.url} /></td>
-								<td id="commentInfo">
+								<td className="tableCell1"><img id='commentImg' src={this.props.url} /></td>
+								<td className="tableCell2" id="commentInfo">
 									<div id="author">{this.props.authorName}</div>
 									{timestamp}
 								</td>
+								{options}								
 							</tr>
 							</tbody>
 						</table>					
@@ -332,7 +386,7 @@ class CommentFormComponent extends Component {
 		}).then(that.checkStatus)
 	      .then(response => response.json())
 		  .then(function(comment) {		  	
-			that.props.updateComment(comment, that.props.postId);
+			that.props.newComment(comment, that.props.postId);
 		  	that.setState({
 		  		comment: '',
 		  		disabled: false
@@ -415,7 +469,7 @@ class PostFormComponent extends Component {
 		  .then(response => response.json()) //must send response.json through then(), just calling response.json within a cb will only return a promise
 		  .then(function(post) {		  	
 		  	console.log(post);		  	
-			that.props.updatePost(post) //duplicate post for faster display time
+			that.props.newPost(post) //duplicate post for faster display time
 		  	that.setState({
 		  		post: '',
 		  		disabled: false
