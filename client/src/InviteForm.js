@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { getToken } from './services';
 
+
 class InviteForm extends Component { //NEED EMAIL VERIFICATION!!!!
 	state = {
 		email: ''

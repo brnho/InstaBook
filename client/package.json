@@ -10,8 +10,14 @@
     "npm": "~5.6.0"
   },
   "dependencies": {
+    "@pusher/chatkit": "^0.7.17",
+    "dotenv": "^6.0.0",
+    "email-validator": "^2.0.4",
+    "js-md5": "^0.7.3",
     "jsonwebtoken": "^8.3.0",
+    "pusher-js": "^4.2.2",
     "react": "^16.4.1",
+    "react-autosuggest": "^9.3.4",
     "react-dom": "^16.4.1",
     "react-router-dom": "^4.3.1"
   },

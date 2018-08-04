@@ -58,3 +58,9 @@ For dev purposes, just display all users to add.
 
 How to display validation errors sent by the api(mongo)??
 
+
+Added some authorization measures. Api calls include an encrypted jwt containing the user's id.
+Actually i dont think you need encryption, just having a jwt should be good enough.
+The question is, can you forge someone else's jwt? Well, the signature is probably based on both the 
+secret key and the payload. So even if you can figure out another user's id (the payload), that's not enough. The other possiblity would be intercepting someone's else api calls; is that possible?
+

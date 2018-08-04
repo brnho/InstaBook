@@ -6,6 +6,7 @@ var SALT_FACTOR = 10;
 
 var userSchema = new mongoose.Schema({	
 	username: {type: String, required: true, unique: true},
+	email: {type: String, required: true, unique: true},
 	password: {type: String, required: true},
 	posts: [{type: Schema.Types.ObjectId, ref: 'Post'}],
 	groups:	[{type: Schema.Types.ObjectId, ref: 'Group'}]
@@ -56,6 +57,7 @@ var commentSchema = new mongoose.Schema({
 
 var postSchema = new mongoose.Schema({
 	authorName: {type: String, require: true},
+	authorId: {type: Schema.Types.ObjectId, require: true},
 	timestamp: {type: Date, "default": Date.now()},
 	text: {type: String, required: true},
 	comments: [commentSchema],
@@ -65,7 +67,8 @@ var postSchema = new mongoose.Schema({
 var groupSchema = new mongoose.Schema({
 	members: [{type: Schema.Types.ObjectId, ref: 'User'}],
 	posts: [postSchema],
-	name: {type: String, required: true, unique: true}
+	name: {type: String, required: true, unique: true},
+	chatRoomId: {type: String}
 });
 
 mongoose.model('User', userSchema);

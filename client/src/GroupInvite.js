@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
+import Chatkit from '@pusher/chatkit';
 import { isLoggedIn, getToken, userId } from './services';
-import 'jsonwebtoken';
+
+var instanceLocator = 'v1:us1:d240e83d-f99c-44d7-ae6f-08b42180a620';
 
 class GroupInvite extends Component {
 
@@ -52,9 +54,10 @@ class GroupInvite extends Component {
 	}
 
 	joinGroup = () => {
+		var user_id = userId();
 		var apiData = {
 			groupId: this.state.groupId,
-			userId: userId()
+			userId: user_id
 		};
 		var token = getToken();
 		var that = this;
@@ -66,16 +69,49 @@ class GroupInvite extends Component {
 				'Content-Type': 'application/json',
 				'Authorization': 'Bearer ' + token
 			}
-		}).then(function(response) {
-			if(response.status === 200) {
-				var url = '/posts/' + that.state.groupName + '/' + that.state.groupId;
-				that.props.history.push(url); //redirect to the group
+		})
+		.then(function(response) {
+			if(response.status === 200) { 
+				return response.json(); //receive roomId from api response body
 			} else if(response.status === 404) { //like the group couldn't be found bc the link was faulty
 				that.setState({ validLink: false });
+				return;
 			} else {
 				console.log('error...'); //throw some error?? redirect to homepage and flash a message?
 			} 
+		})
+		.then((body) => {
+			if(body) {
+				that.addUserToRoom(body.chatRoomId, user_id);
+			}
 		});
+	};
+
+	addUserToRoom = (roomId, user_id) => {
+		var that = this;
+		var token = getToken();
+		var tokenProvider = new Chatkit.TokenProvider({
+	      url: 'http://localhost:3001/api/chatkitAuth',
+	      queryParams: { userId: user_id },                                                                                                         
+	      headers: { Authorization: 'Bearer ' + token}
+	    });	
+	    var chatManager = new Chatkit.ChatManager({
+      		instanceLocator: instanceLocator,
+			userId: user_id, 
+			tokenProvider: tokenProvider
+		});
+		chatManager
+			.connect()
+			.then((currentUser) => {
+				currentUser
+					.joinRoom({ roomId: parseInt(roomId) })
+					.then(room => {
+						var url = '/posts/' + that.state.groupId;
+						that.props.history.push(url); //redirect to the group
+					})
+					.catch(err => console.log(err));
+			})
+			.catch(err => console.log(err));
 	};
 
 	render() {

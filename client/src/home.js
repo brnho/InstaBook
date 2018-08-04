@@ -1,18 +1,25 @@
 import React, { Component } from 'react';
-import { isLoggedIn, currentUser } from './services';
+import { isLoggedIn, currentUser, userId } from './services';
 
 class Home extends Component {
-	state = {
-		username: ''
-	}
 
-	componentWillMount() {
-		if(!isLoggedIn()) {
-			this.props.history.replace('/login');
-		}
-		var username = currentUser();
-		if(username) { //async just in case?
-			this.setState({ username: username });
+
+	state = {
+		username: '',
+		userId: '',
+    }
+
+    componentDidMount() {
+    	if(!isLoggedIn()) {
+    		this.props.history.replace('/login');
+    	}
+    	var username = currentUser();
+    	var user_id = userId();
+		if(username && userId) { //async just in case?
+			this.setState({ 
+				username: username,
+				userId: user_id
+			});
 		}
 	}
 

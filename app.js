@@ -10,25 +10,44 @@ var flash = require("connect-flash");
 var passport = require('passport');
 var mailer = require('express-mailer');
 var jsonwebtoken = require('jsonwebtoken');
-var expressjwt = require('express-jwt')
+var expressjwt = require('express-jwt');
+var helmet = require('helmet');
+var enforceSSL = require('express-enforces-ssl');
+var Pusher = require('pusher');
+var cors = require('cors');
 require('./app_api/models/db'); //hook up the database, now mongoose is configured
-
-var routesAPI = require('./app_api/routes/index');
-var setUpPassport = require('./setuppassport');
 
 var server = "http://localhost:3000"; //WILL NEED TO CONFIGURE THIS LATER
 
 var app = express();
+
+app.use(cors()); 
+
+//app.use(helmet()); //does this work with api??
+//app.enable('trust proxy');
+//app.use(enforceSSL());
+
+var pusher = new Pusher({
+  appId: '566577',
+  key: '2b2939f10640a8221ae9',
+  secret: '6bdd6b3da409b363b266',
+  cluster: 'us2'
+});
+
+pusher.trigger('my-channel', 'my-event', {"message": "hello world"});
+
+var routesAPI = require('./app_api/routes/index');
+var setUpPassport = require('./setuppassport');
 
 //email setup
 mailer.extend(app, {
   from: 'no-reply@example.com',
   host: 'smtp.googlemail.com',
   secureConnection: true,
-  port: 465,
-  transportMethod: 'SMTP',
+  port: 465, //465 for SSL, 587 for TLS
+  transportMethod: 'SMTP',  
   auth: {
-    user: 'brianho501@gmail.com',
+    user: 'brian.ho501@gmail.com', //it seems the '.' is important
     pass: process.env.EMAIL_PASSWORD
   }
 });
