@@ -1,5 +1,7 @@
 # InstaBook
 
+(better formatting: https://docs.google.com/document/d/1HOthhyFP6-BE-nkuziMylyujCs1HUVDCokQj8-Nm3C4/edit)
+
 General
 
 - React.js frontend, Express.js backend/API. Single-page application. Mongoose ODM.
@@ -12,16 +14,17 @@ General
 User Accounts/Authentication
 
 - SignUpForm.jsx takes in email, username, and password. 
-= If a user was successfully created, the API sends back a jwt (but nothing is done with it). SignUpForm.jsx redirects to LoginForm.jsx    by pushing ‘/login’ onto the history props.
- API uses Passport module to handle login authentication. 
-Passport configuration (in setuppassport.js): First checks whether a user with the given username exists. If so, checks whether the given passport is correct by calling the checkPassword method of the User model. 
-Sessions are disabled for Passport since we generate a jwt each time we make a request to the API (?)
-userSchema has a pre-save hook that hashes the password before it is saved
-LoginForm.jsx determines whether login was successful by checking fetch response status codes. 
-If successful, LoginForm.jsx receives a jwt from the API and saves it in localStorage. The jwt secret key is located in the .env file.  
-Username and UserId is extracted from the jwt and used to create a chatkit profile for the user. If a chatkit  profile for the user already exists, the API will just return a 200 status code. 
-Finally, LoginForm.jsx calls its onLogin props method (inform parent component Layout.jsx the user is now logged in so it can make some changes to the navbar display, ex. removing ‘Sign Up’ and replacing it with ‘Logout’) and redirects to the homepage. 
-Components requiring user login check whether the user is logged in by calling isLoggedIn (method defined in services.js) in ComponentDidMount. If false, user is redirected to LoginForm.jsx through the history prop’s replace method.
+- If a user was successfully created, the API sends back a jwt (but nothing is done with it). SignUpForm.jsx redirects to LoginForm.jsx    by pushing ‘/login’ onto the history props.
+- API uses Passport module to handle login authentication. 
+- Passport configuration (in setuppassport.js): First checks whether a user with the given username exists. If so, checks whether the  	 
+  given passport is correct by calling the checkPassword method of the User model. 
+- Sessions are disabled for Passport since we generate a jwt each time we make a request to the API (?)
+- userSchema has a pre-save hook that hashes the password before it is saved
+- LoginForm.jsx determines whether login was successful by checking fetch response status codes. 
+- If successful, LoginForm.jsx receives a jwt from the API and saves it in localStorage. The jwt secret key is located in the .env file.  - Username and UserId is extracted from the jwt and used to create a chatkit profile for the user. If a chatkit  profile for the user
+  already exists, the API will just return a 200 status code. 
+- Finally, LoginForm.jsx calls its onLogin props method (inform parent component Layout.jsx the user is now logged in so it can make 	   some changes to the navbar display, ex. removing ‘Sign Up’ and replacing it with ‘Logout’) and redirects to the homepage. 
+- Components requiring user login check whether the user is logged in by calling isLoggedIn (method defined in services.js) in - -  - ComponentDidMount. If false, user is redirected to LoginForm.jsx through the history prop’s replace method.
 
 
 
