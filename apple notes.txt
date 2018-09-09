@@ -64,3 +64,10 @@ Actually i dont think you need encryption, just having a jwt should be good enou
 The question is, can you forge someone else's jwt? Well, the signature is probably based on both the 
 secret key and the payload. So even if you can figure out another user's id (the payload), that's not enough. The other possiblity would be intercepting someone's else api calls; is that possible?
 
+Actually, i think the jwt payload is hashed with a known algorithm that anyone can unhash.
+So encryption does seem to be necessary.
+
+Edge case: on delete: api call to load posts is made right before the api call to delete the 
+post has finished processing, so the post suddenly reappears after vanishing briefly. 
+There's a small delay between the UI delete and the API delete, that's when the API load posts
+is made.

@@ -104,7 +104,7 @@ class GroupInvite extends Component {
 			.connect()
 			.then((currentUser) => {
 				currentUser
-					.joinRoom({ roomId: parseInt(roomId) })
+					.joinRoom({ roomId: parseInt(roomId, 10) })
 					.then(room => {
 						var url = '/posts/' + that.state.groupId;
 						that.props.history.push(url); //redirect to the group

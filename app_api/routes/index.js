@@ -116,10 +116,9 @@ router.post('/comment/:groupId', auth, function(req, res, next) {
 
 //Create new post
 router.post('/post/:groupId', auth, function(req, res, next) {
-	if(!req.body.post || !req.body.username || !req.body.user_id) {
+	if(!req.body.username || !req.body.user_id) { //missing poll/post and multiVote...
 		return handleErr(res, 404, {"message": "missing information"});
 	}
-
 	Group
 		.findById(req.params.groupId)
 		.exec(function(err, group) {
@@ -127,14 +126,28 @@ router.post('/post/:groupId', auth, function(req, res, next) {
 				return handleErr(res, 400, err);
 			}
 			var url = avatar(req.body.username, 30);
-
-			group.posts.unshift({
-				authorName: req.body.username,
-				authorId: req.body.user_id,
-				text: req.body.post,
-				avatarUrl: url
-			});
-
+			if(req.body.post) { //text post
+				group.posts.unshift({
+					authorName: req.body.username,
+					authorId: req.body.user_id,
+					text: req.body.post,
+					avatarUrl: url
+				});
+			} else if(req.body.pollOptions) { //poll post
+				var voteArrays = []; var i;
+				for(i = 0; i < req.body.pollOptions.length; i++)
+					voteArrays.push([]);
+				group.posts.unshift({
+					authorName: req.body.username,
+					authorId: req.body.user_id,
+					pollOptions: req.body.pollOptions,
+					votesPerOption: voteArrays,
+					avatarUrl: url,
+					multiVote: req.body.multiVote
+				});
+			} else { //empty submission...
+				return handleErr(res, 404, {"message": "insufficient information"});
+			}
 			group.save(function(err, group) {
 				if(err) return handleErr(res, 400, err);
 				res.status(201).json(group.posts[0]); //what if another thread saved another post earlier, so the wrong post is returned??
@@ -223,7 +236,7 @@ router.get('/groupMembers/:groupId', auth, function(req, res, next) {
 router.delete('/post/:postId/:groupId/:token', auth, function(req, res, next) {
 	//authorization 
 	jsonwebtoken.verify(req.params.token, process.env.JWT_SECRET, function(err, decoded) {
-		if(err) return handleErr(res, 403, {"message": "insufficient permissions"});
+		if(err) return handleErr(res, 403, err);//return handleErr(res, 403, {"message": "insufficient permissions (token error)"});
 		/*
 		var decipher = crypto.createDecipher('aes-256-ctr', process.env.JWT_SECRET);
 		var dec = decipher.update(userId, 'hex', 'utf8');
@@ -236,9 +249,8 @@ router.delete('/post/:postId/:groupId/:token', auth, function(req, res, next) {
 	
 			if(group.posts.id(req.params.postId)) {	//protect against that weird 404 error...?? Will need further validation safeguards	
 				var authorId = group.posts.id(req.params.postId).authorId.toString();
-				if(authorId !== userId) return handleErr(res, 403, {"message": "insufficient permissions"});
-				//user id and post id don't match
-
+				if(authorId !== userId) //user id and post id don't match
+					return handleErr(res, 403, {"message": "insufficient permissions (id error)"});				
 				group.posts.id(req.params.postId).remove(); 
 				group.save(function(err, group) {
 					if(err) return handleErr(res, 400, err);
@@ -317,6 +329,45 @@ router.get('/groupAccess/:userId/:groupId', auth, function(req, res, next) {
 				return (res.status(200).json());
 		}
 		res.status(403).json();
+	});
+});
+
+//vote for a poll option
+router.post('/vote/:postId/:groupId', auth, function(req, res, next) { //index, userId, isChecked in req.body
+	Group.findById(req.params.groupId, function(err, group) {
+		if(err)
+			return handleErr(res, 400, err);
+		if(!group) 
+			return handleErr(res, 404, {"message": "group not found"});
+		var post = group.posts.id(req.params.postId);
+		if(!post)
+			return handleErr(res, 404, {"message": "post not found"});
+		if(req.body.isChecked) { //vote for an option
+			if(!post.multiVote) {
+				var i, j;
+				loop:
+				for(i = 0; i < post.votesPerOption.length; i++) {
+					for(j = 0; j < post.votesPerOption[i].length; j++) {
+						console.log(post.votesPerOption[i][j]);
+						if(post.votesPerOption[i][j] === req.body.userId) {							
+							post.votesPerOption[i].splice(j, 1); //remove one element at index j
+							break loop; //users vote should be in there at most once
+						}
+					}
+				}
+			}
+			post.votesPerOption[req.body.index].push(req.body.userId);
+			post.markModified('votesPerOption');
+		} else { //remove the user's vote
+			var voteList = post.votesPerOption[req.body.index].filter((vote) => vote !== req.body.userId);
+			post.votesPerOption[req.body.index] = voteList;
+			post.markModified('votesPerOption'); //interesting...required for mix schema types
+		}
+		group.save(function(err) {
+			if(err)
+				return handleErr(res, 400, err);
+			res.status(201).json();
+		});
 	});
 });
 

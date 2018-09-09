@@ -112,7 +112,7 @@ class Layout extends Component {
       <div>       
 
         <nav className="navbar fixed-top navbar-expand-sm ">
-          <a id="navText" className="navbar-brand" href="/"><strong>Facebook</strong></a>
+          <a id="navText" className="navbar-brand" href="/"><strong>Instabook</strong></a>
           
           <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span className="navbar-toggler-icon"></span>

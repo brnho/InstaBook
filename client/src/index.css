@@ -15,9 +15,7 @@ body {
 
 #boxPostForm{
 	margin-left: 20px;
-
 	margin-top: 30px;
-
 }
 
 #boxPost {
@@ -35,11 +33,10 @@ body {
 	padding-left: 40px;
 }
 
-
-
 .navbar {
 	box-shadow: 0px 1px 1px 0px #9ea39f;	
-	background-color: #3f80ea;
+	/*background-color: #3f80ea;*/
+	background-color: #112951;
 	min-width: 900px;
 	max-height: 55px;
 }
@@ -56,18 +53,6 @@ img {
 #postText {
 	text-indent: 2px;	
 }
-
-#postInfo {
-	font-size: 0.8em;
-	color: #AAA5A5;
-}
-
-
-#commentInfo {
-	font-size: 0.70em;
-	color: #AAA5A5;
-}
-
 
 #commentText {
 	margin-bottom: 0px;	
@@ -116,7 +101,6 @@ textArea{
 	font-size: 90%;
 }
 
-/* User info for posts and comments  */
 #delete {
 	vertical-align: top;
 	font-size: 80%;
@@ -124,13 +108,18 @@ textArea{
 	width: 90%;	/* Attempt to right justify 'delete' */
 }
 
+
+/* profile picture */
 table {
 	table-layout: fixed;
 }
 
-/* profile picture */
 .pTableCell1 {
 	min-width: 30px;
+}
+
+.cTableCell1 {
+	min-width: 20px;
 }
 
 /* username and date */
@@ -138,15 +127,19 @@ table {
 	min-width: 90px;
 }
 
-.cTableCell1 {
-	min-width: 20px;
-}
-
 .cTableCell2  {
 	min-width: 90px;
 }
 
+#postInfo {
+	font-size: 0.8em;
+	color: #AAA5A5;
+}
 
+#commentInfo {
+	font-size: 0.70em;
+	color: #AAA5A5;
+}
 
 /* Login, group, and signup forms */
 .loginField, .groupField, .signUpField {
@@ -174,11 +167,20 @@ div h2 { /* applies to form titles */
 
 /* ChatApp */
 #chatContainer {
+	position: sticky;
+	top: 48px; /*hmm this needs adjusting*/
 	display: grid;
     height: 94vh;
     grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 60px;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 60px;
     grid-template-areas: 	
+        "r r b b b b"
+        "r r m m m m"
+        "r r m m m m"
+        "r r m m m m"
+        "r r m m m m"
+        "r r m m m m"
+        "r r m m m m"
         "r r m m m m"
         "r r m m m m"
         "r r m m m m"
@@ -187,9 +189,36 @@ div h2 { /* applies to form titles */
         "n n s s s s";
 }
 
-#whosOnlineListContainer {
-	/*width: 30%;*/
+#channels {
 	grid-area: r;
+	background-color: #4286f4;
+	padding-top: 15px;
+	padding-left: 5px;
+	overflow-y: auto;
+}
+
+#channelHeader {
+	color: white;
+	font-weight: 700;
+	margin-bottom: 10px;
+	font-size: 1.1em;
+}
+
+#channelText {
+	color: white;
+}
+
+#messageHeader {
+	/*position: relative;
+	right: 10px;
+	width: 104%;*/
+	grid-area: b;
+	text-align: center;
+	padding-top: 15px;
+	font-size: 1.2em;
+	font-weight: 700; 
+	background-color: #cfe4f7;
+	/*box-shadow: 0px 0.2px 3px #565656;*/
 }
 
 #messageList {
@@ -222,6 +251,32 @@ div h2 { /* applies to form titles */
 	margin-bottom: 0px;
 }
 
+#loadOlderMessages {
+	color: #a3a3a3;
+	text-align: center;
+	font-size: .9em;
+	margin-bottom: 0px;
+	text-decoration: underline;
+}
+
+#loadOlderMessages:hover {
+	cursor: pointer;
+}
+
+#noMoreMessages {
+	color: #a3a3a3;
+	text-align: center;
+	font-size: .9em;
+	margin-bottom: 0px;
+}
+
+#emptyChat {
+	color: #949596;
+	text-align: center;
+	padding-right: 10px;
+	margin-top: 15px;
+}
+
 #chatForm {
 	grid-area: s;
 }
@@ -231,20 +286,113 @@ div h2 { /* applies to form titles */
 	height: 100%;
 	border-style: none;
 	background-color: #e6f2ff;
-	text-indent: 20px;
+	text-indent: 10px;
 }
 
 #chatInput:focus {
 	outline-width: 0;
 }
 
+#channelButton {
+	grid-area: n;
+	border: none;
+	width: 100%;
+	padding: 0px 0px 0px 0px;
+	background-color: white;
+	color: #949596;
+}
+
+#channelButton:hover {
+	background-color: #f7f7f7;
+	cursor: pointer;
+}
+
+#channelForm {
+	
+}
+
+#channelInput {
+	height: 100%;
+	width: 100%;
+	border-style: none;
+}
+
+#channelInput:focus {
+	outline-width: 0;
+}
+
+#checkbox {
+	position: absolute;
+	left: 15px;
+}
 
 
 
 
 
+/* Poll */
+#optionContainer {
+	text-align: center;
+}
 
+#deleteOption {
+	display: inline-block;
+	position: relative;
+	bottom: 30px;
+	left: 10px;
+}
 
+#option {
+	width: 90%;
+}
+
+#addOption {
+	margin-left: 20px;
+}
+
+#pollButton {
+	margin-left: 10px;
+}
+
+#pollErrors {
+	text-align: right;
+	margin-right: 10px;
+	color: red;
+}
+
+#postPollOption{
+	border-style: solid;
+	border-width: 1px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding: 5px 5px 5px 5px;
+	border-color: #d6d6d6;
+	width: 85%;
+	display: inline-block;
+}
+
+#voteCount {
+	color: #a3a3a3;
+	font-size: .8em;
+	margin-left: 10px;
+}
+
+#postPollOptionCheckbox {
+
+}
+
+#pollNumVoteCheckbox {
+	position: absolute;
+	left: 15px;
+}
+
+#pollInfo {
+	color: #a3a3a3;
+	font-size: .9em;
+	position: relative;
+	bottom: 5px;
+	margin-bottom: 10px;
+}
 
 
 

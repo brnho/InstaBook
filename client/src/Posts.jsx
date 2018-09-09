@@ -1,11 +1,16 @@
 import React, { Component } from 'react';
 import { getToken, isLoggedIn, currentUser, formatDate, userId, createToken } from './services';
 import InviteForm from './InviteForm';
-import PostForm from './PostForm';
+import PostForm from './PostForm.jsx';
 import CommentForm from './CommentForm';
 import ChatDisplay from './ChatApp.jsx';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 class PostList extends Component {
+	constructor(props) {
+		super(props);
+
+	}
 	state = {
 		posts: [],
 		groupMembers: [],
@@ -13,7 +18,7 @@ class PostList extends Component {
 		chatRoomId:'',
 		username: '',
 		user_id: '',
-		chatReady: false //only render chatapp once a chatkit user has been created
+		chatReady: false //only render chatapp once the neccesary info has loaded
 	};
 
 	componentWillMount() {
@@ -126,7 +131,6 @@ class PostList extends Component {
 		if(posts) { //if for some weird reason the post doesn't exist
 			this.setState({ posts: posts });
 		}
-
 		var jwt = createToken();
 		var token = getToken();
 		var that = this;
@@ -136,6 +140,8 @@ class PostList extends Component {
 				'Accept': 'application/json',
 				'Authorization': 'Bearer ' + token
 			}
+		}).then(response => {
+			that.loadGroupInfo();
 		});
 	}
 
@@ -177,7 +183,9 @@ class PostList extends Component {
 					newComment={this.newComment}
 					groupId={this.props.match.params.groupId}
 					deletePost={this.deletePost}
-					deleteComment={this.deleteComment}					
+					deleteComment={this.deleteComment}
+					loadGroupInfo={this.loadGroupInfo}	
+					groupId={this.props.match.params.groupId}			
 				/>
 			);
 		});
@@ -193,11 +201,11 @@ class PostList extends Component {
 
 		return(
 			<div className="row no-gutters">
-				<div className="col-sm-3">
+				<div className="col-sm-4">
 					{chatDisplay}
 				</div>
 
-				<div className="flex-column col-sm-6">					
+				<div className="flex-column col-sm-5">					
 					<PostForm
 						newPost={this.newPost}
 						username={this.state.username}
@@ -242,6 +250,11 @@ class PostCommentContainer extends Component {
 					url={this.props.post.avatarUrl}
 					postId={this.props.post._id}
 					deletePost={this.props.deletePost}
+					pollOptions={this.props.post.pollOptions}
+					votesPerOption={this.props.post.votesPerOption}
+					loadGroupInfo={this.props.loadGroupInfo}
+					groupId={this.props.groupId}
+					multiVote={this.props.post.multiVote}
 				>
 					<CommentList						
 						comments={this.props.post.comments}
@@ -260,15 +273,95 @@ class PostCommentContainer extends Component {
 
 
 class Post extends React.Component {
+	state = {
+		disabled: false
+	}
+
+	constructor(props) {
+		super(props);
+		this.deleteModal = React.createRef();
+	}
+
 	deletePost = () => {		
 		this.props.deletePost(this.props.postId);
 	};
 
+	openModal = () => {
+		this.deleteModal.current.toggle();
+	}
+
+	handleVote = (event) => {
+		this.setState({ disabled: true }) //ensure the api has processed request before allowing user to vote again
+		var token = getToken();
+		var that = this;
+		var apiData = {
+			index: event.target.name,
+			userId: that.props.user_id,
+			isChecked: event.target.checked
+		};
+		fetch('/api/vote/' + that.props.postId + '/' + that.props.groupId, {
+			method: 'post',
+			body: JSON.stringify(apiData),
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json', //wow, without this request.body is not set??!?
+				'Authorization': 'Bearer ' + token
+			}
+		}).then(response => {
+			that.props.loadGroupInfo(); //faster display time
+			that.setState({ disabled: false });
+		});
+	}
+
 	render() {
 		if(this.props.authorName === this.props.username) { //if this is the current user's post
-			var options = <td id="delete">									
-								<a id="delete" href="javascript:void(0)" onClick={this.deletePost}>Delete Post</a>
+			var deletePost = <td id="delete">									
+								<a id="delete" href="javascript:void(0)" onClick={this.openModal}>Delete Post</a>
 							</td>;
+		}
+		if(this.props.pollOptions.length) { //this is a poll post
+			var i, j;
+			var totalVotes = 0;
+			var userVotedFor = []; //contains indices of the options the user voted for
+			for (i = 0; i < this.props.votesPerOption.length; i++) {
+				totalVotes += this.props.votesPerOption[i].length;
+				for(j = 0; j < this.props.votesPerOption[i].length; j++) {
+					if(this.props.votesPerOption[i][j].toString() === this.props.user_id.toString()) { //if user voted for an option, check the checkbox
+						userVotedFor.push(i);
+					}
+				}
+			}			
+			var poll = this.props.pollOptions.map((option, i) => {
+				var fraction;
+				var numVotes = this.props.votesPerOption[i].length;
+				var isChecked = false;
+				if(userVotedFor.includes(i))
+					isChecked = true;
+				if(totalVotes === 0) //avoid division by 0
+					fraction = 0;	
+				else
+					fraction = (this.props.votesPerOption[i].length * 1.0 / totalVotes) * 100; //how much of the option box to color in
+				var inputStyle = {
+					background: 'linear-gradient(90deg, #dbe8fc ' + fraction + '%, white ' + fraction + '%)'
+				}
+				return(
+					<div key={i}>
+						<div id="postPollOption" style={inputStyle}>
+							<input type="checkbox" id="postPollOptionCheckbox" name={i} onChange={this.handleVote} checked={isChecked} disabled={this.state.disabled}/> 
+							&nbsp; {option}
+						</div>
+						<span id='voteCount'>{numVotes} votes</span> 
+					</div>
+				); //numVotes overflows at 10000
+			});
+			var pollInfo;
+			if(this.props.multiVote) {
+				pollInfo = <div id='pollInfo'>Multi-vote poll</div>;
+			} else {
+				pollInfo = <div id='pollInfo'>Single-vote poll</div>;
+			}
+		} else { //text post
+			var text = <p id="postText">{this.props.text}</p>
 		}
 
 		var commentList = React.Children.toArray(this.props.children)[0]; //convert into usable format
@@ -284,13 +377,19 @@ class Post extends React.Component {
 									<div id="author">{this.props.authorName}</div>									
 									{this.props.timestamp}
 								</td>
-								{options}								
+								{deletePost}								
 							</tr>							
 							</tbody>
-						</table>											
-						<p id="postText">{this.props.text}</p>
+						</table>
+						{poll}
+						{pollInfo}											
+						{text}
 						{commentList}
-					</div>					
+					</div>
+					<DeleteModal
+						ref={this.deleteModal}
+						delete={this.deletePost}
+					/>					
 				</div>
 			</div>			
 		);
@@ -335,21 +434,28 @@ class CommentList extends React.Component {
 }
 
 class Comment extends React.Component {
+	constructor(props) {
+		super(props);
+		this.deleteModal = React.createRef();
+	}
 
 	deleteComment = () => {
 		this.props.deleteComment(this.props.postId, this.props.commentId);
 	};
 
+	openModal = () => {
+		this.deleteModal.current.toggle();
+	}
+
 	render() {
 		if(this.props.authorName === this.props.username) {
 			var options = <td id="delete">									
-								<a id="delete" href="javascript:void(0)" onClick={this.deleteComment}>Delete Comment</a>
+								<a id="delete" href="javascript:void(0)" onClick={this.openModal}>Delete Comment</a>
 							</td>;
 		}
-
 		var timestamp = formatDate(this.props.timestamp);
 		return(
-			<div className="row d-flex justify-content-center mr-2 ml-2">
+			<div className="row d-flex justify-content-center">
 				<div className="col-sm-12">
 					<div className="box" id="commentBox">
 						<table>
@@ -365,11 +471,46 @@ class Comment extends React.Component {
 							</tbody>
 						</table>					
 						<p id="commentText">{this.props.text}</p>
-					</div>					
+					</div>	
+					<DeleteModal
+						ref={this.deleteModal}
+						delete={this.deleteComment}
+					/>				
 				</div>
 			</div>
 		);
 	}
+}
+
+class DeleteModal extends Component { //receives props delete
+  state = {
+    modal: false,
+  }
+
+  toggle = () => {
+    this.setState({ 
+      modal: !this.state.modal,
+    });
+  }
+
+  onDelete = () => {
+  	this.props.delete();
+  	this.toggle();
+  }
+
+  render() {
+    return(
+      <div>
+        <Modal isOpen={this.state.modal} toggle={this.toggle}>
+          <ModalHeader toggle={this.toggle}>Are you sure you want to delete?</ModalHeader>
+          <ModalFooter>
+            <button type="submit" className="btn btn-secondary" onClick={this.onDelete}>Delete</button>
+            <button type="submit" className="btn btn-secondary" onClick={this.toggle}>Cancel</button>
+          </ModalFooter>
+        </Modal>
+      </div>      
+    );
+  }
 }
 
 export default PostList; 

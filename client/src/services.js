@@ -80,7 +80,7 @@ var createToken = function() {
 			crypted += cipher.final('hex');
 			*/
 			var expiry = new Date();
-			expiry.setDate(expiry.getDate() + 0.00138); //two minutes from now
+			expiry.setDate(expiry.getMilliseconds() + 120000); //two minutes from now
 			var token = jwt.sign({
 				userId: id,
 				exp: parseInt(expiry.getTime() / 1000)

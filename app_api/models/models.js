@@ -59,10 +59,14 @@ var postSchema = new mongoose.Schema({
 	authorName: {type: String, require: true},
 	authorId: {type: Schema.Types.ObjectId, require: true},
 	timestamp: {type: Date, "default": Date.now()},
-	text: {type: String, required: true},
+	text: {type: String},
 	comments: [commentSchema],
-	avatarUrl: {type: String}
+	avatarUrl: {type: String},
+	pollOptions: [String],
+	votesPerOption: [], //record who voted for what
+	multiVote: {type: Boolean}
 });
+
 
 var groupSchema = new mongoose.Schema({
 	members: [{type: Schema.Types.ObjectId, ref: 'User'}],

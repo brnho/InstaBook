@@ -72,11 +72,11 @@ class CommentForm extends Component {
 			errors = null;
 		}
 		return(
-			<div className="row d-flex justify-content-center mr-2 ml-2">
+			<div className="row d-flex justify-content-center">
 				<div className="col-sm-12">
 					
 						<form onSubmit={this.handleSubmit}>					
-							<input name='comment' className='form-control' disabled={this.state.disabled} value={this.state.comment} placeholder='Write a comment' onChange={this.handleChange}/>
+							<input name='comment' className='form-control' disabled={this.state.disabled} value={this.state.comment} placeholder='Write a comment' autoComplete="off" onChange={this.handleChange}/>
 							{errors}														
 						</form>							
 					
