@@ -15,7 +15,14 @@ body {
 
 #boxPostForm{
 	margin-left: 20px;
-	margin-top: 30px;
+	margin-top: 80px;
+}
+
+#groupName {
+	text-align: center;
+	margin-top: 80px;
+	margin-right: 20px;
+	margin-left: 20px;		
 }
 
 #boxPost {
@@ -81,13 +88,6 @@ textArea{
 	font-weight: 710;
 }
 
-#groupName {
-	text-align: center;
-	margin-top: 30px;
-	margin-right: 20px;
-	margin-left: 20px;		
-}
-
 #navText, #navbarDropdown {
 	color: white;
 }
@@ -147,9 +147,25 @@ table {
 	margin-top: 10px;
 }
 
-#loginPage, #groupFormPage, #signUpPage  {
+#loginPage, #groupFormPage {
 	margin-top: 80px;
 }
+
+#loginPage {
+	margin-top: 0px;
+	padding-top: 200px;
+	background-image: url('city_background.jpg');
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	text-align: center;
+}
+
+/*#loginContainer {
+	padding-top: 20px;
+	padding-bottom: 20px;
+	background-color: white;
+	box-shadow: 0px 1px 3px 0.5px #9ea39f; 
+}*/
 
 div h2 { /* applies to form titles */	
 	text-align: center;
@@ -160,15 +176,44 @@ div h2 { /* applies to form titles */
 	margin: auto; /* Center form input fields */
 }
 
+#login {
+	margin-top: 30px;
+}
+
+#instabook {
+	text-align: center;
+	font-weight: 700;
+	font-size: 5em;
+}
+
+#signUp {
+	margin-top: 10px;
+}
+
+#signUpInner {
+	color: blue;
+	text-decoration: underline;
+}
+
+#signUpInner:hover {
+	cursor: pointer;
+}
+
 #loginSubmit, #groupSubmit, #signUpSubmit {
 	margin-top: 10px;
+}
+
+#loginSubmit {
+	width: 100%;
+	padding-top: 2px;
+	padding-bottom: 2px;
 }
 
 
 /* ChatApp */
 #chatContainer {
 	position: sticky;
-	top: 48px; /*hmm this needs adjusting*/
+	top: 48px; /*probably needs to be the same as navbar height*/
 	display: grid;
     height: 94vh;
     grid-template-columns: repeat(6, 1fr);

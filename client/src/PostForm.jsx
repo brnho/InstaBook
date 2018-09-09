@@ -138,14 +138,14 @@ class PollModal extends Component {
     errors: ''
   }
 
-  toggle = () => {
-    this.setState({ 
-      modal: !this.state.modal,
-      options: ['', '', ''],
-      isChecked: false,
-      errors: ''
-    });
-  }
+	  toggle = () => {
+	    this.setState({ 
+	      modal: !this.state.modal,
+	      options: ['', '', ''],
+	      isChecked: false,
+	      errors: ''
+	    });
+	  }
 
   onChange = (event) => {
   	var index = parseInt(event.target.name, 10); //get the index of the option

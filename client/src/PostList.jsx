@@ -18,7 +18,6 @@ class PostList extends Component {
 		chatRoomId:'',
 		username: '',
 		user_id: '',
-		chatReady: false //only render chatapp once the neccesary info has loaded
 	};
 
 	componentWillMount() {
@@ -54,7 +53,6 @@ class PostList extends Component {
 				user_id: user_id 
 			});
 			this.loadGroupInfo();
-			this.loadGroupMembers();		
 			this.forceUpdateInterval = setInterval(this.loadGroupInfo, 5000); //poll the api every 5 seconds			
 		}
 	}
@@ -79,26 +77,10 @@ class PostList extends Component {
 			that.setState({ 
 				posts: group.posts,
 				groupName: group.name,
+				groupMembers: group.members,
 				chatRoomId: group.chatRoomId
 			});
 		});
-	};
-
-	loadGroupMembers = () => {
-		var that = this;
-		var token = getToken();
-		fetch('/api/groupMembers/' + this.props.match.params.groupId, {
-			method: 'get',
-			headers: {
-				'Accept': 'application/json',
-				'Authorization': 'Bearer ' + token
-			}
-		})
-			.then(that.checkStatus)
-			.then(res => res.json())
-			.then(function(groupMembers) {
-				that.setState({ groupMembers: groupMembers });
-			});
 	};
 
 	checkStatus = (response) => {

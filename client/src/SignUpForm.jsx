@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import * as EmailValidator from 'email-validator';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 class SignUpForm extends Component {
 	state = {
@@ -12,13 +13,23 @@ class SignUpForm extends Component {
 			password: false
 		},
 		disabled: false,
+		modal: false
 	};
 
-	/*
-	setFormRef = (element) => { //note this is an older version of react
-		this.form = element; //get a reference to the form so I can manually submit it		
-	};
-	*/
+	toggle = () => {
+		this.setState({
+			email: '',
+			username: '',
+			password: '',
+			errors: {
+				email: false,
+				username: false,
+				password: false
+			},
+			disabled: false,
+			modal: !this.state.modal			
+		});
+	}
 
 	handleChange = (event) => {
 		var field = event.target.name;
@@ -28,7 +39,6 @@ class SignUpForm extends Component {
 			return prevState;
 		});
 	};
-
 
 	validateInput = (username, password, email) => {
 		var errors = {};
@@ -62,7 +72,6 @@ class SignUpForm extends Component {
 			password: this.state.password
 		};
 		var that = this; //good workaround?
-
 		fetch('/api/user', {
 			method: 'post',
 			body: JSON.stringify(postData),
@@ -72,7 +81,7 @@ class SignUpForm extends Component {
 			}
 		}).then(function(response) {
 			if(response.status === 201) {
-				that.props.history.push('/login');
+				that.toggle();
 				return;				
 			} else if(response.status === 409){ //duplicate email in database
 				that.setState({ 
@@ -106,10 +115,10 @@ class SignUpForm extends Component {
 		}	
 
 		return(
-			<div id="signUpPage">
-			
+			<div>
+				<Modal isOpen={this.state.modal} toggle={this.toggle}>	
+				<ModalBody>		
 				<h2>Sign Up</h2>
-
 				<form onSubmit={this.handleSubmit} id="signUpForm">	
 					<input className='form-control signUpField' name='email' value={this.state.email} placeholder='Email' onChange={this.handleChange} />
 					{emailErr}				
@@ -119,7 +128,8 @@ class SignUpForm extends Component {
 					{passwordErr}
 					<button className="btn btn-primary" id="signUpSubmit" type="submit" disabled={this.state.disabled}>Submit</button>
 				</form>
-		
+				</ModalBody>
+				</Modal>		
 			</div>		
 		);
 	}

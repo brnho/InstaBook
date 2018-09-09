@@ -40,10 +40,7 @@ class ChatDisplay extends Component { //props: username, userId, roomId
     .connect()
     .then((currentUser) => {
 				that.setState({ currentUser }); //store reference to currentUser
-        var channelList = currentUser.rooms.map((room) => {
-          return [room.name, room.id];
-        });
-        that.setState({ channels: channelList }); //populate channels with the rooms the user is a member of
+        that.setState({ channels: currentUser.rooms }); //populate channels with the rooms the user is a member of
 				return currentUser.subscribeToRoom({
 					roomId: parseInt(that.props.roomId, 10), //12386251
           messageLimit: 20, //onNewMessage hook will be called for the past 100 messages
@@ -74,7 +71,7 @@ class ChatDisplay extends Component { //props: username, userId, roomId
 
   createChannel = (name) => {
     this.state.currentUser.createRoom({
-      name: name
+      name: name,
     }).then(room => {
       var channelList = [...this.state.channels, [room.name, room.id]];
       this.setState({ channels: channelList });
@@ -215,7 +212,7 @@ class MessageList extends Component { //props: currentUser, messages (message ha
         var time = hour + ':' + minutes + ' ' + amOrPm;        
         displayMessages.push(
           <div key={i} id='messageBlock'>
-            <img src={url} alt='loading gif' /> <span id='messageAuthor'>{messages[i].sender.name}</span> <span id='messageTime'>{time}</span>
+            <img src={url} alt='profile picture' /> <span id='messageAuthor'>{messages[i].sender.name}</span> <span id='messageTime'>{time}</span>
             <p id='messageText'>{messages[i].text}</p>
           </div>
         );
@@ -223,17 +220,19 @@ class MessageList extends Component { //props: currentUser, messages (message ha
     }
     var text;
     if(displayMessages.length === 0) {
-      text = <div id="emptyChat">Be the first to say something!</div>;
+      text = <div id="emptyChat" alt='loading gif'>Be the first to say something!</div>;
     }
-    if(this.state.isLoading) {
-      var img = <img src={spinner} />;
-    }
-    var end;
-    if(this.state.noMoreMessages) {
-      end = <p id='noMoreMessages'>No more messages to display</p>;
-    } else {
-      end = <p onClick={this.loadOldMessages} id='loadOlderMessages'>Load older messages</p>;
-    }    
+    else {
+      if(this.state.isLoading) {
+        var img = <img src={spinner} />;
+      }
+      var end;
+      if(this.state.noMoreMessages) {
+        end = <p id='noMoreMessages'>No more messages to display</p>;
+      } else {
+        end = <p onClick={this.loadOldMessages} id='loadOlderMessages'>Load older messages</p>;
+      } 
+    }   
     return(  
       <div id='messageList' ref={this.container}>
         {end}
@@ -276,7 +275,7 @@ class ChannelList extends Component {
 
   render() {
     var channels = this.props.channels.map((channel, i) => {      
-      return(<p key={i}><a href="javascript:void(0)" id="channelText" roomid={channel[1]} onClick={this.onChannelClick}>#{channel[0]}</a></p>);
+      return(<p key={i}><a href="javascript:void(0)" id="channelText" roomid={channel.id} onClick={this.onChannelClick}>#{channel.name}</a></p>);
     });
 
     return(

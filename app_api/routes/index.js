@@ -218,17 +218,9 @@ router.get('/groups', auth, function(req, res, next) {
 
 //get a group
 router.get('/group/:groupId', auth, function(req, res, next) {
-	Group.findById(req.params.groupId, function(err, group) {
+	Group.findById(req.params.groupId).populate('members', 'username').exec(function(err, group) {
 		if(err) return handleErr(res, 400, err);
 		res.status(200).json(group);
-	});
-});
-
-//get a group's members
-router.get('/groupMembers/:groupId', auth, function(req, res, next) {
-	Group.findById(req.params.groupId).populate('members', 'username').exec(function(err, group) {
-		if(err || !group) return handleErr(res, 400, err);
-		res.status(200).json(group.members);
 	});
 });
 

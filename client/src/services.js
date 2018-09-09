@@ -17,7 +17,6 @@ var logout = function() {
 }
 
 var isLoggedIn = function() {
-
 	var token = getToken();
 	if(token) {		
 		var result;

@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link} from "react-router-dom";
 
 import Home from './Home.js';
-import PostList from './Posts.jsx';
-import SignUpForm from './SignUpForm';
-import LoginForm from './LoginForm';
+import PostList from './PostList.jsx';
+import LoginForm from './LoginForm.jsx';
 import Logout from './Logout.js';
 import GroupForm from './GroupForm.js';
 import GroupInvite from './GroupInvite.js';
@@ -89,7 +88,6 @@ class Layout extends Component {
     var login, signup, groups, viewGroups;
     if(this.state.loggedIn) {
       login = <Link to="/logout" id="navText" className="nav-link">Logout</Link>;
-      signup = null;                                    
       groups = this.state.groups.map((group, i) => {  
         var url = '/posts/' + group._id;      
         return(
@@ -100,8 +98,6 @@ class Layout extends Component {
                       View Groups
                    </a>;     
     } else {
-      login = <Link to="/login" id="navText" className="nav-link disabled">Login</Link>; 
-      signup = <Link to="/signup" id="navText" className="nav-link disabled">Sign Up</Link>; 
       viewGroups = <a className="nav-link dropdown-toggle disabled" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       View Groups
                    </a>;
@@ -134,9 +130,6 @@ class Layout extends Component {
               </li>
               <li className="nav-item">
                 {login}
-              </li>
-              <li className="nav-item">
-                {signup}
               </li>      
             </ul>  
 
@@ -145,17 +138,14 @@ class Layout extends Component {
               groups={this.state.groups}
             />
           </div>
-        </nav>
-
- 
-          <div className="mt-5">
+        </nav> 
+          
             <Route exact path="/" component={Home} />
             <Route exact path="/posts/:groupId" component={PostList} />
             <Route 
               exact path='/createGroup'
               render={(props) => <GroupForm {...props} updateGroups={this.updateGroups} userId={this.state.userId}/>}
             />
-            <Route exact path="/signup" component={SignUpForm} />  
             <Route 
               exact path="/login" 
               render={(props) => <LoginForm {...props} onLogin={this.onLogin} />}
@@ -168,8 +158,7 @@ class Layout extends Component {
             <Route 
               exact path="/chat"
               render={(props) => <ChatDisplay {...props} username={this.state.username} userId={this.state.userId} />} 
-            />       
-          </div>
+            />          
 
       </div>        
       </Router>

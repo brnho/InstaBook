@@ -1,7 +1,13 @@
 import React, { Component } from 'react';
+import SignUpForm from './SignUpForm.jsx';
 import { saveToken, currentUser, userId, getToken } from './services';
 
 class LoginForm extends Component {
+	constructor(props) {
+		super(props);
+		this.form = React.createRef();
+	}
+
 	state = {
 		username: '',
 		password: '',
@@ -10,8 +16,26 @@ class LoginForm extends Component {
 			password: false,
 			submit: false
 		},
-		disabled: false		
+		disabled: false,	
+		width: '',
+		height: ''	
 	};	
+
+	componentDidMount() {
+		this.updateDimensions();
+        window.addEventListener("resize", this.updateDimensions);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.updateDimensions);
+    }
+
+    updateDimensions = () => {
+    	this.setState({
+    		width: window.innerWidth,
+    		height: window.innerHeight
+    	});
+    }
 
 	handleChange = (event) => {
 		var field = event.target.name;
@@ -106,6 +130,10 @@ class LoginForm extends Component {
 		});
 	};
 
+	toggleSignUpForm = () => {
+		this.form.current.toggle();
+	}
+
 	render() {
 		var usernameErr, passwordErr, submitErr;
 		if(this.state.errors.username) {
@@ -117,25 +145,36 @@ class LoginForm extends Component {
 		if(this.state.errors.submit) {
 			submitErr = <div style={{ color: 'red' }}>{this.state.errors.submit}</div>;
 		}
-
+		var style = {
+			width: this.state.width + 'px',
+			height: this.state.height + 'px'
+		};
 		return(
-			<div id="loginPage">
-			
-				<h2>Login</h2>					
-				<form onSubmit={this.handleSubmit} id="loginForm">						
-					<input className='form-control loginField' name='username' value={this.state.username} placeholder='Username' onChange={this.handleChange} />
-					{usernameErr}
+			<div id="loginPage" style={style}>
 				
-					<input className='form-control loginField' name='password' type='password' value={this.state.password} placeholder='Password' onChange={this.handleChange} />
-					{passwordErr}
 					
-					<button className="btn btn-primary" id="loginSubmit" type="submit" disabled={this.state.disabled}>Submit</button>
-					{submitErr}
-				</form>
-			
+					
+						<div id="loginContainer">
+							<h1 id="instabook">Instabook</h1>			
+							<h2 id="login">Login</h2>					
+							<form onSubmit={this.handleSubmit} id="loginForm">						
+								<input className='form-control loginField' name='username' value={this.state.username} placeholder='Username' onChange={this.handleChange} />
+								{usernameErr}
+							
+								<input className='form-control loginField' name='password' type='password' value={this.state.password} placeholder='Password' onChange={this.handleChange} />
+								{passwordErr}
+								
+								<button className="btn btn-primary" id="loginSubmit" type="submit" disabled={this.state.disabled}>Submit</button>
+								{submitErr}
+							</form>	
+							<p id='signUp'>Don't have an account? <span id='signUpInner' onClick={this.toggleSignUpForm}>Sign Up</span></p>
+						</div>
+						<SignUpForm ref={this.form} />
+					
+						
 			</div>		
 		);
 	}
 }
 
-export default LoginForm
+export default LoginForm;
